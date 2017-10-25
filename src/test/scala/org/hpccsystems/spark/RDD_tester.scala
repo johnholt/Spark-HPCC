@@ -13,9 +13,11 @@ import org.hpccsystems.spark.temp.FilePartsFactory
 object RDD_tester {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("Spark HPCC test")
-    conf.setMaster("local(2)")
+    conf.setMaster("local")
     conf.setSparkHome("/Users/holtjd/WorkArea/spark-2.2.0-bin-hadoop2.7")
-    conf.setJars(List("/Users/holtjd/.m2/repository/org/hpccsystems/wsclient/1.3.0-SNAPSHOT.jar",
+//    conf.setJars(List("/Users/holtjd/.m2/repository/org/hpccsystems/wsclient/1.3.0-SNAPSHOT.jar",
+    conf.setJars(List(
+        "/Users/holtjd/Repositories/HPCC-JAPIs/wsclient/target/wsclient-1.3.0-SNAPSHOT-jar-with-dependencies.jar",
         "/Users/holtjd/Repositories/Spark-HPCC/target/spark-hpcc-t0.jar"))
     println("Have set configuration")
     val spark = new SparkContext(conf)
@@ -44,7 +46,7 @@ object RDD_tester {
     var rec_iter = myRDD.toLocalIterator
     while (rec_iter.hasNext) {
       val rec = rec_iter.next
-      println(rec.get(1) + " " + rec.get(2))
+      println(rec.get(0) + " " + rec.get(1))
     }
   }
 }
