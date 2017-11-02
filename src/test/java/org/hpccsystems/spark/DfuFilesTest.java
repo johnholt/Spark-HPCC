@@ -10,7 +10,6 @@ import org.hpccsystems.ws.client.platform.DFUDataColumnInfo;
 import org.hpccsystems.ws.client.platform.EclRecordInfo;
 import org.hpccsystems.ws.client.utils.Connection;
 
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +24,7 @@ import java.util.Map;
  * @author John Holt
  *
  */
-public class DFU_Files_tester {
+public class DfuFilesTest {
   private HPCCWsDFUClient hpcc;
 
   /**
@@ -36,7 +35,7 @@ public class DFU_Files_tester {
    * @param user user name
    * @param pword password
    */
-  public DFU_Files_tester(String protocol, String targetHost, String targetPort,
+  public DfuFilesTest(String protocol, String targetHost, String targetPort,
          String user, String pword) {
     Connection conn = new Connection(protocol, targetHost, targetPort);
     conn.setUserName(user);
@@ -54,7 +53,7 @@ public class DFU_Files_tester {
 
   public static void main(String[] args) throws Exception {
     //Files f_work = new DFU_Files("http", "127.0.0.1", "18010", "", "");
-      DFU_Files_tester f_work = new DFU_Files_tester("http", "10.239.40.2", "8010", "", "");
+      DfuFilesTest f_work = new DfuFilesTest("http", "10.239.40.2", "8010", "", "");
     HPCCWsDFUClient hpcc = f_work.getClient();
     DFUFileDetailInfo fd = hpcc.getFileDetails("~THOR::JDH::JAPI_TEST", "");
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::persist::res1", "");

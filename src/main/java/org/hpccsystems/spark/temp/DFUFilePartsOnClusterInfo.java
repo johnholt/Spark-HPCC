@@ -8,27 +8,25 @@ import org.hpccsystems.ws.client.gen.wsdfu.v1_36.DFUFilePartsOnCluster;
  * @author John Holt
  *
  */
-public class DFUFilePartsOnClusterInfo extends DFUFilePartsOnCluster
-{
-    static final long serialVersionUID = 1;
+public class DFUFilePartsOnClusterInfo extends DFUFilePartsOnCluster {
+  static final long serialVersionUID = 1;
 
-    public DFUFilePartsOnClusterInfo(org.hpccsystems.ws.client.gen.wsdfu.v1_36.DFUFilePartsOnCluster raw)
-    {
-        super(raw.getCluster(), raw.getBaseDir(), raw.getReplicateDir(), raw.getReplicate(), raw.getCanReplicate(), raw
-                .getDFUFileParts());
-    }
+  public DFUFilePartsOnClusterInfo(org.hpccsystems.ws.client.gen.wsdfu.v1_36.DFUFilePartsOnCluster raw) {
+    super(raw.getCluster(), raw.getBaseDir(), raw.getReplicateDir(), raw.getReplicate(), raw.getCanReplicate(),
+        raw.getDFUFileParts());
+  }
 
-    /**
-     * File parts for the file on the specific cluster
-     *
-     * @return an array of metadata describing each file part
-     */
-    public DFUFilePartInfo[] getDFUFileParts()
-    {
-        DFUPart[] fp = super.getDFUFileParts();
-        DFUFilePartInfo[] fpi = new DFUFilePartInfo[fp.length];
-        for (int i = 0; i < fp.length; i++)
-            fpi[i] = new DFUFilePartInfo(fp[i]);
-        return fpi;
-    }
+  /**
+   * File parts for the file on the specific cluster
+   *
+   * @return an array of metadata describing each file part
+   */
+  @Override
+  public DFUFilePartInfo[] getDFUFileParts() {
+    DFUPart[] fp = super.getDFUFileParts();
+    DFUFilePartInfo[] fpi = new DFUFilePartInfo[fp.length];
+    for (int i = 0; i < fp.length; i++)
+      fpi[i] = new DFUFilePartInfo(fp[i]);
+    return fpi;
+  }
 }
