@@ -2,9 +2,8 @@ package org.hpccsystems.spark;
 
 import org.hpccsystems.ws.client.HPCCWsDFUClient;
 import org.hpccsystems.ws.client.platform.DFUFileDetailInfo;
-import org.hpccsystems.spark.temp.DFUFilePartsOnClusterInfo;
-import org.hpccsystems.spark.temp.DFUFilePartInfo;
-import org.hpccsystems.spark.temp.FilePartsFactory;
+import org.hpccsystems.ws.client.platform.DFUFilePartsOnClusterInfo;
+import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
 import org.hpccsystems.ws.client.platform.DFURecordDefInfo;
 import org.hpccsystems.ws.client.platform.DFUDataColumnInfo;
 import org.hpccsystems.ws.client.platform.EclRecordInfo;
@@ -12,6 +11,9 @@ import org.hpccsystems.ws.client.utils.Connection;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 
 
 
@@ -55,7 +57,7 @@ public class DfuFilesTest {
     //Files f_work = new DFU_Files("http", "127.0.0.1", "18010", "", "");
       DfuFilesTest f_work = new DfuFilesTest("http", "10.239.40.2", "8010", "", "");
     HPCCWsDFUClient hpcc = f_work.getClient();
-    DFUFileDetailInfo fd = hpcc.getFileDetails("~THOR::JDH::JAPI_TEST", "");
+    DFUFileDetailInfo fd = hpcc.getFileDetails("~THOR::KDH::JAPI_TEST2", "", true);
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::persist::res1", "");
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::jdh::test_strings_2", "");
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::jdh::test::glass.csv", "");
@@ -66,13 +68,12 @@ public class DfuFilesTest {
     System.out.println("Num parts: " + fd.getNumParts());
     System.out.println("File size: " + fd.getFilesize());
     System.out.println("Max Size: " + fd.getMaxRecordSize());
-    System.out.println("Actual size: " + fd.getActualSize());
     System.out.println("Record size: " + fd.getRecordSize());
     System.out.println("Record count: " + fd.getRecordCount());
     System.out.println("Format: " + fd.getFormat());
     System.out.println("Ecl: " + fd.getEcl());
     System.out.println("Content type: " + fd.getContentType());
-    DFUFilePartsOnClusterInfo[] fp = FilePartsFactory.makePartsOnCluster(fd);
+    DFUFilePartsOnClusterInfo[] fp = fd.getDFUFilePartsOnClusters();
     for (int f=0; fp!=null && f<fp.length; f++) {
       DFUFilePartInfo[] parts = fp[f].getDFUFileParts();
       System.out.println(parts.length);
@@ -80,22 +81,47 @@ public class DfuFilesTest {
         System.out.println(parts[i].getId() + ":"
                 + parts[i].getCopy() + ":"
                 + parts[i].getIp() + ": "
-                + parts[i].getPartsize() + "; "
-                + parts[i].getActualSize());
+                + parts[i].getPartsize());
       }
     }
-        System.out.println("Column definition information:");
-        java.util.ArrayList<DFUDataColumnInfo> fields = fd.getColumns();
-        for (DFUDataColumnInfo fld : fields) {
-            System.out.println("$$$" + fld.toString());
-            System.out.println();
-        }
-    System.out.println("Record definition information:");
-    EclRecordInfo ri = fd.getRecordFromECL(fd.getEcl());
-    HashMap<String, DFURecordDefInfo> rdef_map = ri.getRecordsets();
-    for (Map.Entry<String, DFURecordDefInfo> entry : rdef_map.entrySet()) {
-        System.out.println("---" + entry.getKey() + " ===> "
-                + entry.getValue().toString());
+    String record_def_json = fd.getJsonInfo();
+    System.out.println("Record Structure in JSON");
+    System.out.println(record_def_json);
+    System.out.println("Working with JSON Objects");
+    JsonFactory factory = new JsonFactory();
+    JsonParser parse_obj = factory.createParser(record_def_json);
+    JsonToken tok = parse_obj.nextToken();
+    while (tok != null) {
+      StringBuffer sb = new StringBuffer();
+      sb.append(tok.toString());
+      sb.append("=");
+      switch (tok) {
+        case FIELD_NAME:
+          sb.append(parse_obj.getCurrentName());
+          break;
+        case VALUE_NUMBER_INT:
+          sb.append(parse_obj.getLongValue());
+          break;
+        case VALUE_NUMBER_FLOAT:
+          sb.append(parse_obj.getDoubleValue());
+          break;
+        case VALUE_TRUE:
+        case VALUE_FALSE:
+          sb.append(parse_obj.getBooleanValue());
+          break;
+        case VALUE_STRING:
+          sb.append('"');
+          sb.append(parse_obj.getText());
+          sb.append('"');
+          break;
+        default:
+          sb.append('%');
+          sb.append(parse_obj.getText());
+          sb.append('%');
+      }
+      System.out.println(sb.toString());
+      tok = parse_obj.nextToken();
     }
+    System.out.println("End parse");
   }
 }

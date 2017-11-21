@@ -13,9 +13,8 @@ import java.util.Arrays;
 import org.hpccsystems.ws.client.HPCCWsDFUClient;
 import org.hpccsystems.ws.client.utils.Connection;
 import org.hpccsystems.ws.client.platform.DFUFileDetailInfo;
-import org.hpccsystems.spark.temp.DFUFilePartsOnClusterInfo;
-import org.hpccsystems.spark.temp.DFUFilePartInfo;
-import org.hpccsystems.spark.temp.FilePartsFactory;
+import org.hpccsystems.ws.client.platform.DFUFilePartsOnClusterInfo;
+import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
 
 
 /**
@@ -36,7 +35,7 @@ public class RDDTest {
     String japi_jar = "/Users/holtjd/Repositories/HPCC-JAPIs/wsclient/target"
         + "/wsclient-1.3.0-SNAPSHOT-jar-with-dependencies.jar";
     String this_jar = "/Users/holtjd/Repositories/Spark-HPCC/target/spark-hpcc-t0.jar";
-    java.util.List<String> jar_list = Arrays.asList(japi_jar, this_jar);
+    java.util.List<String> jar_list = Arrays.asList(this_jar);
     Seq<String> jar_seq = JavaConverters.iterableAsScalaIterableConverter(jar_list).asScala().toSeq();;
     conf.setJars(jar_seq);
     System.out.println("Spark configuration set");
@@ -48,7 +47,7 @@ public class RDDTest {
     conn.setPassword("h0lt");
     HPCCWsDFUClient hpcc =HPCCWsDFUClient.get(conn);
     DFUFileDetailInfo fd = hpcc.getFileDetails(hpcc_file,  "");
-    DFUFilePartInfo[] dfu_parts = FilePartsFactory.makePartsOnCluster(fd)[0].getDFUFileParts();
+    DFUFilePartInfo[] dfu_parts = fd.getDFUFilePartsOnClusters()[0].getDFUFileParts();
     String base_name = fd.getDir() + "/" + fd.getFilename();
     FilePart[] parts = FilePart.makeFileParts(fd.getNumParts(), base_name,
         dfu_parts);

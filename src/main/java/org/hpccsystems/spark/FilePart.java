@@ -4,10 +4,12 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Comparator;
 import java.util.Arrays;
 import org.apache.spark.Partition;
-import org.hpccsystems.spark.temp.DFUFilePartInfo;
+import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
 
 /**
  * @author holtjd
@@ -15,6 +17,7 @@ import org.hpccsystems.spark.temp.DFUFilePartInfo;
  */
 public class FilePart implements Partition, Serializable {
   static private final long serialVersionUID = 1L;
+  static private NumberFormat fmt = NumberFormat.getInstance();
   private String primary_ip;
   private String secondary_ip;
   private String base_name;
@@ -64,8 +67,13 @@ public class FilePart implements Partition, Serializable {
     for (int i=0; i<num_parts; i++) {
       DFUFilePartInfo primary = parts[i * copies];
       DFUFilePartInfo secondary = parts[(i * copies) + posSecondary];
-      int partSize = (primary.getPartsize()!="")
-          ? Integer.parseInt(primary.getPartsize())  : 0;
+      int partSize;
+      try {
+        partSize = (primary.getPartsize()!="")
+            ? fmt.parse(primary.getPartsize()).intValue()  : 0;
+      } catch (ParseException e) {
+        partSize = 0;
+      }
       rslt[i] = new FilePart(primary.getIp(), secondary.getIp(),
           base_name, i+1, num_parts, partSize);
     }

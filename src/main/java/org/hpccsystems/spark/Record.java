@@ -49,9 +49,18 @@ public class Record implements java.io.Serializable {
   public FieldContent getFieldContent(String name) {
     return content.get(name);
   }
+  /**
+   * Copy the record fields into an array
+   * @return an array of content items
+   */
   public FieldContent[] getFields() {
     java.util.Collection<FieldContent> w = content.values();
     FieldContent[] rslt = w.toArray(new FieldContent[0]);
     return rslt;
   }
+  /**
+   * The name of this record
+   * @return the name
+   */
+  public String recordName() { return this.recordName; }
 }

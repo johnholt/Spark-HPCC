@@ -52,7 +52,7 @@ public class HpccRDD extends RDD<Record> implements Serializable {
    */
   @Override
   public InterruptibleIterator<Record> compute(Partition p_arg, TaskContext ctx) {
-    FilePart this_part = (FilePart) p_arg;
+    final FilePart this_part = (FilePart) p_arg;
     Iterator<Record> iter = new Iterator<Record>() {
       private FilePart fp = this_part;
       private long pos = 0;
