@@ -24,9 +24,9 @@ import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
  */
 public class RDDTest {
   public static void main(String[] args) throws Exception {
-    String hpcc_ip = "10.241.12.204";
+    String hpcc_ip = "10.239.40.2";
     String hpcc_port = "8010";
-    String hpcc_file = "~thor::jdh::japi_test";
+    String hpcc_file = "~thor::jdh::japi_test1";
     String protocol = "http";
     //
     SparkConf conf = new SparkConf().setAppName("Spark HPCC test");
@@ -44,20 +44,20 @@ public class RDDTest {
     //
     Connection conn = new Connection(protocol, hpcc_ip, hpcc_port);
     conn.setUserName("jholt");
-    conn.setPassword("h0lt");
+    conn.setPassword("");
     HPCCWsDFUClient hpcc =HPCCWsDFUClient.get(conn);
     DFUFileDetailInfo fd = hpcc.getFileDetails(hpcc_file,  "");
     DFUFilePartInfo[] dfu_parts = fd.getDFUFilePartsOnClusters()[0].getDFUFileParts();
-    String base_name = fd.getDir() + "/" + fd.getFilename();
-    FilePart[] parts = FilePart.makeFileParts(fd.getNumParts(), base_name,
-        dfu_parts);
+    //String base_name = fd.getDir() + "/" + fd.getFilename();
+    FilePart[] parts = FilePart.makeFileParts(fd.getNumParts(), fd.getDir(),
+        fd.getFilename(), fd.getPathMask(), dfu_parts);
     System.out.println("Number of file part is: " + parts.length);
     for (FilePart fp : parts) {
       System.out.println("p:" + fp.getPrimaryIP() + "; s:" + fp.getSecondaryIP()
               + "; part=" + fp.getThisPart() + " of " + fp.getNumParts()
               + "; size=" + fp.getPartSize());
     }
-    HpccRDD myRDD = new HpccRDD(sc, parts);
+    HpccRDD myRDD = new HpccRDD(sc, parts, new RecordDef());
     System.out.println("Getting local iterator");
     scala.collection.Iterator<Record> rec_iter = myRDD.toLocalIterator();
     while (rec_iter.hasNext()) {

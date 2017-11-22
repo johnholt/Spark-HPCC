@@ -13,32 +13,31 @@ package org.hpccsystems.spark;
  */
 public class Record implements java.io.Serializable {
   static final long serialVersionUID = 1L;
-  private String recordName;
+  private String fileName;
+  private int part;
+  private long pos;
   private java.util.HashMap<String, FieldContent> content;
   /**
    * Record from an array of content items
    * @param content
-   * @param typeName name of the record type
+   * @param fileName name of the file
+   * @param part the file part number
+   * @param pos the position of this record in the file part
    */
-  public Record(FieldContent[] content, String typeName) {
-    this.recordName = typeName;
+  public Record(FieldContent[] content, String fileName, int part, long pos) {
+    this.fileName = fileName;
+    this.part = part;
+    this.pos = pos;
     this.content = new java.util.HashMap<String, FieldContent>(100);
     for (FieldContent w : content) {
       this.content.put(w.getName(), w);
     }
   }
   /**
-   * A record with no name, a top level record
-   * @param content
-   */
-  public Record(FieldContent[] content) {
-    this(content, "");
-  }
-  /**
    * No argument constructor for serialization support
    */
   protected Record() {
-    this.recordName = "";
+    this.fileName = "";
     this.content = new java.util.HashMap<String, FieldContent>(0);
   }
   /**
@@ -59,8 +58,17 @@ public class Record implements java.io.Serializable {
     return rslt;
   }
   /**
-   * The name of this record
+   * The name of this file
    * @return the name
    */
-  public String recordName() { return this.recordName; }
+  public String fileName() { return this.fileName; }
+  /**
+   * @return the part number of this part of the file
+   */
+  public int getFilePart() { return this.part; }
+  /**
+   * The relative record position of this record within the file part
+   * @return record position
+   */
+  public long getPos() { return pos; }
 }

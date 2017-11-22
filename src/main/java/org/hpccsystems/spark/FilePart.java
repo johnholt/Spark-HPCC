@@ -20,16 +20,18 @@ public class FilePart implements Partition, Serializable {
   static private NumberFormat fmt = NumberFormat.getInstance();
   private String primary_ip;
   private String secondary_ip;
-  private String base_name;
+  private String file_name;
   private int this_part;
   private int num_parts;
   private long part_size;
 
-  private FilePart(String ip0, String ipx, String name,
-      int this_part, int num_parts, long part_size) {
+  private FilePart(String ip0, String ipx, String dir, String name,
+      int this_part, int num_parts, long part_size, String mask) {
+    String p_str = Integer.toString(this_part);
+    String f_str = dir + "/" + name + "." + mask;
     this.primary_ip = ip0;
     this.secondary_ip = ipx;
-    this.base_name = name;
+    this.file_name = f_str.replace("$P$", p_str);
     this.this_part = this_part;
     this.num_parts = num_parts;
     this.part_size = part_size;
@@ -39,7 +41,7 @@ public class FilePart implements Partition, Serializable {
   public String getPrimaryIP() { return this.primary_ip; }
   public String getSecondaryIP() { return this.secondary_ip; }
   public String getFilename() {
-    return this.base_name;
+    return this.file_name;
   }
   public int getThisPart() { return this.this_part; }
   public int getNumParts() { return this.num_parts; }
@@ -54,12 +56,14 @@ public class FilePart implements Partition, Serializable {
   /**
    * Create an array of Spark partition objects for HPCC file parts.
    * @param num_parts the number of parts for the file
-   * @param base_name the base name of the file
+   * @param dir the directory name for the file
+   * @param name the base name of the file
+   * @param mask the mask for the file name file part suffix
    * @param parts an array of JAPI file part info objects
    * @return an array of partitions for Spark
    */
-  public static FilePart[] makeFileParts(int num_parts, String base_name,
-      DFUFilePartInfo[] parts) {
+  public static FilePart[] makeFileParts(int num_parts, String dir,
+      String name, String mask, DFUFilePartInfo[] parts) {
     FilePart[] rslt = new FilePart[num_parts];
     Arrays.sort(parts, FilePartInfoComparator);
     int copies = parts.length / num_parts;
@@ -75,7 +79,7 @@ public class FilePart implements Partition, Serializable {
         partSize = 0;
       }
       rslt[i] = new FilePart(primary.getIp(), secondary.getIp(),
-          base_name, i+1, num_parts, partSize);
+          dir, name, i+1, num_parts, partSize, mask);
     }
     return rslt;
   }

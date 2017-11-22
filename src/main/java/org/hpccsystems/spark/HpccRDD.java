@@ -1,22 +1,13 @@
-/**
- *
- */
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import java.util.Iterator;
 import org.apache.spark.Dependency;
 import org.apache.spark.Partition;
 import org.apache.spark.SparkContext;
 import org.apache.spark.TaskContext;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.InterruptibleIterator;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
-//import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.collection.mutable.ArraySeq;
 import scala.reflect.ClassTag;
@@ -35,16 +26,18 @@ public class HpccRDD extends RDD<Record> implements Serializable {
           = new ArraySeq<Dependency<RDD<Record>>>(0);
   //
   private FilePart[] parts;
+  private RecordDef def;
   /**
    * @param _sc
    * @param
    */
-  public HpccRDD(SparkContext _sc, FilePart[] parts) {
+  public HpccRDD(SparkContext _sc, FilePart[] parts, RecordDef def) {
     super(_sc, empty, CT_RECORD);
     this.parts = new FilePart[parts.length];
     for (int i=0; i<parts.length; i++) {
       this.parts[i] = parts[i];
     }
+    this.def = def;
   }
 
   /* (non-Javadoc)
@@ -53,25 +46,37 @@ public class HpccRDD extends RDD<Record> implements Serializable {
   @Override
   public InterruptibleIterator<Record> compute(Partition p_arg, TaskContext ctx) {
     final FilePart this_part = (FilePart) p_arg;
+    final RecordDef def = this.def;
     Iterator<Record> iter = new Iterator<Record>() {
-      private FilePart fp = this_part;
-      private long pos = 0;
+      private boolean first_pending = true;
+      private boolean eof = false;
+      private HpccRemoteFileReader rfr
+                      = new HpccRemoteFileReader(def, this_part);
+      private Record latest;
       //
+      private Record readRemote() {
+        Record rslt = null;
+        try {
+          rslt = rfr.remoteRead();
+        } catch (java.io.EOFException e) {
+          eof = true;
+        }
+        return rslt;
+      }
       public boolean hasNext() {
-        return (pos < fp.getPartSize()) ? true : false;
+        if (first_pending) {
+          latest = readRemote();
+        }
+        first_pending = false;
+        return eof;
       }
       public Record next() {
-        if (!hasNext()) {
-          throw new NoSuchElementException("HPCC file partition at EOF");
+        if (first_pending) {
+          latest = readRemote();
+          first_pending = false;
         }
-        pos += 100;
-        ArrayList<FieldContent> test_data = new ArrayList<FieldContent>();
-        String field1 = "File part "+ String.valueOf(this_part.getThisPart());
-        test_data.add(new StringContent("F1", field1));
-        String field2 = "pos " + String.valueOf(pos);
-        test_data.add(new StringContent("F2", field2));
-        FieldContent[] content = test_data.toArray(new FieldContent[0]);
-        Record rslt = new Record(content);
+        Record rslt = latest;
+        latest = readRemote();
         return rslt;
       }
     };

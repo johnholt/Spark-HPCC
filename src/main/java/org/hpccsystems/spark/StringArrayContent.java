@@ -101,7 +101,7 @@ public class StringArrayContent extends FieldContent {
   public Record asRecord() {
     FieldContent[] w = new FieldContent[1];
     w[0] = this;
-    Record rslt = new Record(w);
+    Record rslt = new Record(w, "Dummy", 0, 0);
     return rslt;
   }
   @Override
@@ -109,7 +109,7 @@ public class StringArrayContent extends FieldContent {
     Record[] rslt = new Record[1];
     FieldContent[] f = new FieldContent[1];
     f[0] = this;
-    rslt[0] = new Record(f);
+    rslt[0] = new Record(f, "Dummy", 0, 0);
     return rslt;
   }
 }

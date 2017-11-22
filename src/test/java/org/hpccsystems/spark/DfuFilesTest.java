@@ -57,7 +57,7 @@ public class DfuFilesTest {
     //Files f_work = new DFU_Files("http", "127.0.0.1", "18010", "", "");
       DfuFilesTest f_work = new DfuFilesTest("http", "10.239.40.2", "8010", "", "");
     HPCCWsDFUClient hpcc = f_work.getClient();
-    DFUFileDetailInfo fd = hpcc.getFileDetails("~THOR::KDH::JAPI_TEST2", "", true);
+    DFUFileDetailInfo fd = hpcc.getFileDetails("~THOR::JDH::JAPI_TEST1", "", true);
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::persist::res1", "");
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::jdh::test_strings_2", "");
     //DFUFileDetailInfo fd = hpcc.getFileDetails("~thor::jdh::test::glass.csv", "");
@@ -75,13 +75,15 @@ public class DfuFilesTest {
     System.out.println("Content type: " + fd.getContentType());
     DFUFilePartsOnClusterInfo[] fp = fd.getDFUFilePartsOnClusters();
     for (int f=0; fp!=null && f<fp.length; f++) {
-      DFUFilePartInfo[] parts = fp[f].getDFUFileParts();
-      System.out.println(parts.length);
+      DFUFilePartInfo[] dfu_parts = fp[f].getDFUFileParts();
+      System.out.println(dfu_parts.length);
+      FilePart[] parts = FilePart.makeFileParts(fd.getNumParts(),
+          fd.getDir(), fd.getFilename(), fd.getPathMask(), dfu_parts);
       for (int i=0; i<parts.length; i++) {
-        System.out.println(parts[i].getId() + ":"
-                + parts[i].getCopy() + ":"
-                + parts[i].getIp() + ": "
-                + parts[i].getPartsize());
+        System.out.println(parts[i].getFilename() + ":"
+                + parts[i].getPrimaryIP()+ ":"
+                + parts[i].getSecondaryIP() + ": "
+                + parts[i].getThisPart());
       }
     }
     String record_def_json = fd.getJsonInfo();
