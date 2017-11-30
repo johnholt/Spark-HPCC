@@ -11,6 +11,7 @@ import org.hpccsystems.ws.client.utils.Connection;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Iterator;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -92,10 +93,18 @@ public class DfuFilesTest {
     System.out.println("Working with JSON Objects");
     JsonFactory factory = new JsonFactory();
     JsonParser parse_obj = factory.createParser(record_def_json);
-    JsonToken tok = parse_obj.nextToken();
+    JsonToken tok = parse_obj.nextValue();
+    int obj_level = 0;
     while (tok != null) {
-      StringBuffer sb = new StringBuffer();
+      if (tok==JsonToken.END_OBJECT) obj_level--;
+      StringBuilder sb = new StringBuilder();
+      for (int i=0; i<obj_level; i++) sb.append("  ");
+      sb.append("Level ");
+      sb.append(obj_level);
+      sb.append(":  ");
       sb.append(tok.toString());
+      sb.append(" ");
+      sb.append(parse_obj.getCurrentName());
       sb.append("=");
       switch (tok) {
         case FIELD_NAME:
@@ -122,7 +131,8 @@ public class DfuFilesTest {
           sb.append('%');
       }
       System.out.println(sb.toString());
-      tok = parse_obj.nextToken();
+      if (tok==JsonToken.START_OBJECT) obj_level++;
+      tok = parse_obj.nextValue();
     }
     System.out.println("End parse");
   }

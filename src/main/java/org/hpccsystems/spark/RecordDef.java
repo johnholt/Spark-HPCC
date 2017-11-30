@@ -1,9 +1,12 @@
 package org.hpccsystems.spark;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
+import org.hpccsystems.spark.data.UnusableDataDefinitionException;
 
 /**
- * HPCC record definiton.  Includes HPCC record info strings and derived
+ * HPCC record definition.  Includes HPCC record info strings and derived
  * Field Defs.
  * @author holtjd
  *
@@ -35,13 +38,14 @@ public class RecordDef implements Serializable {
     this.root = root;
   }
   /**
-   * Create a record definitojn object from the JSON definition
+   * Create a record definition object from the JSON definition
    * string.
    * @param def the JSON record type defintion returned from WsDfu
    * @return a new record definition
    */
-  static public RecordDef parseJsonDef(String def) {
+  static public RecordDef parseJsonDef(String def) throws JsonParseException {
     FieldDef root = new FieldDef("root", FieldType.MISSING);
+    HashMap<String, FieldType> types = new HashMap<String, FieldType>();
     RecordDef rslt = new RecordDef(def, root);
     return rslt;
   }
