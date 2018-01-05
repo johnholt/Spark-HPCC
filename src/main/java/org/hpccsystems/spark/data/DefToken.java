@@ -9,6 +9,7 @@ import java.util.Deque;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 public class DefToken {
   private final JsonToken tok;
@@ -93,6 +94,37 @@ public class DefToken {
    * @return the boolean value if the token was a true or false
    */
   public boolean getBoolean() { return whenBoolean; }
+
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(parent);
+    sb.append(" ");
+    sb.append(name);
+    sb.append("=");
+    sb.append(tok.toString());
+    switch(tok) {
+      case VALUE_NUMBER_INT:
+        sb.append(" ");
+        sb.append(Long.toString(whenInteger));
+        break;
+      case VALUE_NUMBER_FLOAT:
+        sb.append(" ");
+        sb.append(Double.toString(whenReal));
+        break;
+      case VALUE_STRING:
+        sb.append(":");
+        sb.append(whenString);
+        break;
+      case VALUE_TRUE:
+      case VALUE_FALSE:
+        sb.append(" ");
+        sb.append(Boolean.toString(whenBoolean));
+        break;
+      default:
+        break;
+    }
+    return sb.toString();
+  }
   /**
    * Parse the JSON encoded definition string into an array of
    * tokens.  The def string should never cause an IOException,
@@ -103,7 +135,7 @@ public class DefToken {
    * @return an array of tokens
    * @throws JsonParseException
    */
-  public static DefToken[] parseDefString(String def)
+  public static ArrayList<DefToken> parseDefString(String def)
             throws JsonParseException {
     ArrayList<DefToken> tokens = new ArrayList<DefToken>();
     Integer parent = new Integer(-1);
@@ -155,6 +187,6 @@ public class DefToken {
       String msg = "JSON Parse triggered IO exception";
       throw new IllegalArgumentException(msg, e);
     }
-    return tokens.toArray(new DefToken[0]);
+    return tokens;
   }
 }

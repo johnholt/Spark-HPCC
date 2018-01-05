@@ -7,7 +7,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import scala.collection.Seq;
 import scala.collection.JavaConverters;
-import org.hpccsystems.spark.HpccFiles;
+import org.hpccsystems.spark.HpccFile;
 import java.util.Arrays;
 //
 import org.hpccsystems.ws.client.HPCCWsDFUClient;
