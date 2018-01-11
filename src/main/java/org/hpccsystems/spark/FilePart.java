@@ -28,7 +28,7 @@ public class FilePart implements Partition, Serializable {
   private FilePart(String ip0, String ipx, String dir, String name,
       int this_part, int num_parts, long part_size, String mask) {
     String p_str = Integer.toString(this_part);
-    String f_str = dir + "/" + name + "." + mask;
+    String f_str = dir + "/" + mask;
     this.primary_ip = ip0;
     this.secondary_ip = ipx;
     this.file_name = f_str.replace("$P$", p_str);

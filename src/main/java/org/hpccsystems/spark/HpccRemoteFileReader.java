@@ -1,6 +1,7 @@
 package org.hpccsystems.spark;
 
 import java.util.ArrayList;
+
 /**
  * @author holtjd
  * Remote file reader used by the HpccRDD
