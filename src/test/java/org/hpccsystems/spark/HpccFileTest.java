@@ -10,11 +10,12 @@ import java.util.Iterator;
 public class HpccFileTest {
 
   public static void main(String[] args) throws Exception {
-    String MyVM = "127.0.0.1";
+    //String MyVM = "127.0.0.1";
     String ML_Dev = "10.239.40.2";
-    String test1Name = "~THOR::JDH::JAPI_TEST1";
-    String test2Name = "~THOR::JDH::JAPI_TEST2";
-    HpccFile hpcc = new HpccFile(test2Name, "http", ML_Dev, "8010", "", "");
+    //String test1Name = "~THOR::JDH::JAPI_TEST1";
+    //String test2Name = "~THOR::JDH::JAPI_TEST2";
+    String test3Name = "~THOR::JDH::JAPI_FIXED";
+    HpccFile hpcc = new HpccFile(test3Name, "http", ML_Dev, "8010", "", "");
     System.out.println("Getting file parts");
     FilePart[] parts = hpcc.getFileParts();
     for (int i=0; i<parts.length; i++) {
@@ -42,6 +43,8 @@ public class HpccFileTest {
     StringBuilder sb = new StringBuilder();
     sb.append("Handle ");
     sb.append(pc.getHandle());
+    sb.append(", data length=");
+    sb.append(block.length);
     System.out.println(sb.toString());
     for (int i=0; i<block.length; i+=16) {
       sb.delete(0, sb.length());

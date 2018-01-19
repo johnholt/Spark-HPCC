@@ -3,6 +3,7 @@ package org.hpccsystems.spark;
 import org.hpccsystems.spark.FieldType;
 import org.hpccsystems.spark.data.DefToken;
 import org.hpccsystems.spark.data.UnusableDataDefinitionException;
+import org.hpccsystems.spark.data.HpccSrcType;
 
 import com.fasterxml.jackson.core.JsonToken;
 
@@ -24,9 +25,10 @@ public class FieldDef implements Serializable {
   private FieldType fieldType;
   private String typeName;
   private FieldDef[] defs;
+  private HpccSrcType srcType;
   private int fields;
-  private long len;
-  private long childLen;
+  private int len;
+  private int childLen;
   private boolean fixedLength;
   //
   private static final String FieldNameName = "name";
@@ -37,6 +39,7 @@ public class FieldDef implements Serializable {
     this.fieldType = FieldType.MISSING;
     this.typeName = FieldType.MISSING.description();
     this.defs = new FieldDef[0];
+    this.srcType = HpccSrcType.UNKNOWN;
     this.fields = 0;
     this.len = 0;
     this.childLen = 0;
@@ -51,6 +54,7 @@ public class FieldDef implements Serializable {
       this.fieldType = typeDef.getType();
       this.typeName = typeDef.description();
       this.defs = typeDef.getStructDef();
+      this.srcType = typeDef.getSourceType();
       this.fields = 1;
       this.len = typeDef.getLength();
       this.childLen = typeDef.childLen();
@@ -65,13 +69,14 @@ public class FieldDef implements Serializable {
    * @param isFixedLength len may be non-zero and variable
    * @param def the array of fields composing this def
    */
-  public FieldDef(String fieldName, FieldType fieldType, String typeName,
-      long len, long childLen, boolean isFixedLength, FieldDef[] defs) {
+  public FieldDef(String fieldName, FieldType fieldType, String typeName, long len,
+      long childLen, boolean isFixedLength, HpccSrcType styp, FieldDef[] defs) {
     this.fieldName = fieldName;
     this.fieldType = fieldType;
     this.typeName = typeName;
     this.defs = defs;
-    for (int i=0; i<defs.length; i++) this.fields += defs[i].fields;
+    this.srcType = styp;
+    this.fields = defs.length;
     this.fixedLength = isFixedLength;
   }
   /**
@@ -88,6 +93,27 @@ public class FieldDef implements Serializable {
   public FieldType getFieldType() {
     return fieldType;
   }
+  /**
+   * Data type on the HPCC cluster.
+   * @return type enumeration
+   */
+  public HpccSrcType getSourceType() { return this.srcType; }
+  /**
+   * Length of the data or minimum length if variable
+   * @return length
+   */
+  public int getDataLen() { return this.len; }
+  /**
+   * Length of the child definition or minimum length if variable
+   * @return length
+   */
+  public int getChildLen() { return this.childLen; }
+  /**
+   * Fixed of variable length
+   * @return true when fixed length
+   */
+  public boolean isFixed() { return this.fixedLength; }
+
   /**
    * A descriptive string showing the name and type.  When the
    * type is a composite, the composite definitions are included.
@@ -135,6 +161,11 @@ public class FieldDef implements Serializable {
   public String recordName() {
     return (this.fieldType.isComposite()) ? this.typeName : "";
   }
+  /**
+   * The number of fields, 1 or more if a record
+   * @return number of fields.
+   */
+  public int getNumFields() { return this.fields; }
   /**
    * An iterator to walk though the type definitions that compose
    * this type.

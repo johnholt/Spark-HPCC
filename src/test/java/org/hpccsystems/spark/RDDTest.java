@@ -26,7 +26,7 @@ public class RDDTest {
   public static void main(String[] args) throws Exception {
     String hpcc_ip = "10.239.40.2";
     String hpcc_port = "8010";
-    String hpcc_file = "~thor::jdh::japi_test1";
+    String hpcc_file = "~thor::testdata::iris";
     String protocol = "http";
     //
     SparkConf conf = new SparkConf().setAppName("Spark HPCC test");
@@ -42,29 +42,18 @@ public class RDDTest {
     SparkContext sc = new SparkContext(conf);
     System.out.println("Spark context available");
     //
-    Connection conn = new Connection(protocol, hpcc_ip, hpcc_port);
-    conn.setUserName("jholt");
-    conn.setPassword("");
-    HPCCWsDFUClient hpcc =HPCCWsDFUClient.get(conn);
-    DFUFileDetailInfo fd = hpcc.getFileDetails(hpcc_file,  "");
-    DFUFilePartInfo[] dfu_parts = fd.getDFUFilePartsOnClusters()[0].getDFUFileParts();
-    //String base_name = fd.getDir() + "/" + fd.getFilename();
-    FilePart[] parts = FilePart.makeFileParts(fd.getNumParts(), fd.getDir(),
-        fd.getFilename(), fd.getPathMask(), dfu_parts);
-    System.out.println("Number of file part is: " + parts.length);
-    for (FilePart fp : parts) {
-      System.out.println("p:" + fp.getPrimaryIP() + "; s:" + fp.getSecondaryIP()
-              + "; part=" + fp.getThisPart() + " of " + fp.getNumParts()
-              + "; size=" + fp.getPartSize());
-    }
-    HpccRDD myRDD = new HpccRDD(sc, parts, new RecordDef());
+    HpccFile hpcc = new HpccFile(hpcc_file, protocol, hpcc_ip, hpcc_port, "", "");
+    System.out.println("Getting file parts");
+    FilePart[] parts = hpcc.getFileParts();
+    System.out.println("Getting record definition");
+    RecordDef rd = hpcc.getRecordDefinition();
+    System.out.println("Creating RDD");
+    HpccRDD myRDD = new HpccRDD(sc, parts, rd);
     System.out.println("Getting local iterator");
     scala.collection.Iterator<Record> rec_iter = myRDD.toLocalIterator();
     while (rec_iter.hasNext()) {
       Record rec = rec_iter.next();
-      FieldContent f1 = rec.getFieldContent("F1");
-      FieldContent f2 = rec.getFieldContent("F2");
-      System.out.println(f1.asString() + " / " + f2.asString());
+      System.out.println(rec.toString());
     }
     System.out.println("End of run");
   }

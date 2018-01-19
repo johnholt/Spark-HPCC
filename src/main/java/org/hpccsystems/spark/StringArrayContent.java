@@ -9,7 +9,7 @@ import java.text.NumberFormat;
  * @author holtjd
  *
  */
-public class StringArrayContent extends FieldContent {
+public class StringArrayContent extends Content {
   private static final long serialVersionUID = 1L;
   static private NumberFormat fmt = NumberFormat.getInstance();
   private String[] values;
@@ -98,18 +98,44 @@ public class StringArrayContent extends FieldContent {
     return rslt;
   }
   @Override
-  public Record asRecord() {
-    FieldContent[] w = new FieldContent[1];
+  public Content[] asRecord() {
+    Content[] w = new Content[1];
     w[0] = this;
-    Record rslt = new Record(w, "Dummy", 0, 0);
+    return w;
+  }
+  @Override
+  public RecordContent[] asSetOfRecord() {
+    RecordContent[] rslt = new RecordContent[1];
+    Content[] f = new Content[1];
+    f[0] = this;
+    rslt[0] = new RecordContent("Dummy", f);
     return rslt;
   }
   @Override
-  public Record[] asSetOfRecord() {
-    Record[] rslt = new Record[1];
-    FieldContent[] f = new FieldContent[1];
-    f[0] = this;
-    rslt[0] = new Record(f, "Dummy", 0, 0);
+  public byte[] asBinary() {
+    char[] chars = this.values[0].toCharArray();
+    byte[] rslt = new byte[chars.length*Character.BYTES];
+    for (int i=0; i<chars.length; i++ ) {
+      int high = i*2;
+      int low = high + 1;
+      rslt[high] = 0;
+      rslt[low] = 0;
+    }
+    return rslt;
+  }
+  @Override
+  public byte[][] asSetOfBinary() {
+    byte[][] rslt = new byte[this.values.length][];
+    for (int i=0; i<this.values.length; i++) {
+      char[] chars = this.values[i].toCharArray();
+      rslt[i] = new byte[chars.length*Character.BYTES];
+      for (int j=0; j<chars.length; j++) {
+        int high = j*2;
+        int low = high + 1;
+        rslt[i][high] = (byte)((chars[j] & 0xff00) >> 8);
+        rslt[i][low] = (byte)(chars[i] & 0x00ff);
+      }
+    }
     return rslt;
   }
 }

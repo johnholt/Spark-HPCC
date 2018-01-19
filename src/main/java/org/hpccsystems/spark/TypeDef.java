@@ -6,18 +6,21 @@ import java.util.ArrayList;
 import java.io.Serializable;
 import org.hpccsystems.spark.data.DefToken;
 import org.hpccsystems.spark.data.UnusableDataDefinitionException;
+import org.hpccsystems.spark.data.HpccSrcType;
 import com.fasterxml.jackson.core.JsonToken;
 
 public class TypeDef implements Serializable {
   static final long serialVersionUID = 1L;
   private FieldType type;
   private String typeName;
-  private long len;
+  private int len;
+  private HpccSrcType src;
   private FieldDef[] struct;
   private boolean unsignedFlag;
   private boolean fixedLength;
-  private long childLen;
+  private int childLen;
   private FieldType childType;
+  private HpccSrcType childSrc;
   // flag values from eclhelper.hpp RtlFieldTypeMask enum definition
   final private static short flag_unsigned = 256;
   final private static short flag_unknownsize = 1024;
@@ -51,9 +54,11 @@ public class TypeDef implements Serializable {
   private TypeDef() {
     this.typeName = "none";
     this.len = 0;
+    this.src = HpccSrcType.UNKNOWN;
     this.type = FieldType.MISSING;
     this.struct = new FieldDef[0];
     this.childLen = 0;
+    this.childSrc = HpccSrcType.UNKNOWN;
     this.childType = FieldType.MISSING;
     this.unsignedFlag = false;
   }
@@ -64,16 +69,19 @@ public class TypeDef implements Serializable {
    * @param len the value of the JSON pair named length
    * @param childType the type of the child or MISSING if no child JSON pair
    * @param child length or 0 if no child JSON pair
+   * @param child source enum type value
    * @param defs the field definitions specified by fields JSON pair
    */
-  public TypeDef(long type_id, String typeName, long len,
-      FieldType childType, long childLen, FieldDef[] defs) {
-    short type = (type_id < 10000) ? (short) type_id   : 0;
+  public TypeDef(long type_id, String typeName, int len,
+      FieldType childType, int childLen, HpccSrcType childSrc,
+      FieldDef[] defs) {
+    short type = (type_id < 10000) ? (short) type_id   : -1;
     this.typeName = typeName;
     this.len = len;
     this.struct = defs;
     this.unsignedFlag = type==type_uint;
     this.childLen = childLen;
+    this.childSrc = childSrc;
     this.childType = childType;
     switch (type) {
       case type_boolean:
@@ -157,6 +165,28 @@ public class TypeDef implements Serializable {
         this.fixedLength = false;
         this.type = FieldType.MISSING;
     }
+    switch (type) {
+      case type_int:
+      case type_uint:
+      case type_real:
+        this.src = HpccSrcType.LITTLE_ENDIAN;
+        break;
+      case type_utf8:
+      case type_vutf8:
+        this.src = HpccSrcType.UTF8;
+        break;
+      case type_string:
+      case type_varstring:
+      case type_vstring:
+        this.src = HpccSrcType.SINGLE_BYTE_CHAR;
+        break;
+      case type_unicode:
+      case type_vunicode:
+        this.src = HpccSrcType.UTF16LE;
+        break;
+      default:
+        this.src = HpccSrcType.UNKNOWN;
+    }
   }
   /**
    * Use for type definition that has a child defined
@@ -165,8 +195,9 @@ public class TypeDef implements Serializable {
    * @param len the value of the JSON pair named length
    * @param fields the list of field definitions if this is a structure
    */
-  public TypeDef(long type_id, String typeName, long len, FieldDef[] fields) {
-    this(type_id, typeName, len, FieldType.MISSING, 0, fields);
+  public TypeDef(long type_id, String typeName, int len, FieldDef[] fields) {
+    this(type_id, typeName, len, FieldType.MISSING, 0,
+        HpccSrcType.UNKNOWN, fields);
   }
   /**
    * The type of this field definition.
@@ -190,7 +221,7 @@ public class TypeDef implements Serializable {
    * The fixed length for this type or 0 if the length is variable
    * @return the fixed length or zero
    */
-  public long getLength() { return len; }
+  public int getLength() { return len; }
   /**
    * The list of fields that define a structure type
    * @return the filed list or empty array
@@ -215,7 +246,12 @@ public class TypeDef implements Serializable {
   /**
    * The fixed length of the child type or zero
    */
-  public long childLen() { return childLen; }
+  public int childLen() { return childLen; }
+  /**
+   * The binary encoding type of the data source.
+   * @return source type
+   */
+  public HpccSrcType getSourceType() { return this.src; }
   /**
    * Pick up a type definition from parsing a JSON string.  The type
    * definitions are object pairs.  The type definition object has pair
@@ -240,16 +276,17 @@ public class TypeDef implements Serializable {
     }
     String typeName = first.getName();
     long fieldType = 0;
-    long length = 0;
+    int length = 0;
     FieldType childType = FieldType.MISSING;
-    long childLen = 0;
+    int childLen = 0;
+    HpccSrcType childSrc = HpccSrcType.UNKNOWN;
     FieldDef[] fields = new FieldDef[0];
     DefToken curr = toks_iter.next();
     while (toks_iter.hasNext() && curr.getToken() != JsonToken.END_OBJECT) {
       if (fieldTypeName.equals(curr.getName())) {
         fieldType = curr.getInteger();
       } else if (lengthName.equals(curr.getName())) {
-        length = curr.getInteger();
+        length = (int) curr.getInteger();
       } else if (childName.equals(curr.getName())) {
         String name = curr.getString();
         if (!type_dict.containsKey(name)) {
@@ -262,6 +299,7 @@ public class TypeDef implements Serializable {
         TypeDef child = type_dict.get(name);
         childType = child.getType();
         childLen = child.getLength();
+        childSrc = child.getSourceType();
         fields = child.getStructDef();
       } else if (fieldsName.equals(curr.getName())) {
         if (curr.getToken() != JsonToken.START_ARRAY) {
@@ -292,7 +330,7 @@ public class TypeDef implements Serializable {
       new UnusableDataDefinitionException("Early object termination");
     }
     TypeDef rslt = new TypeDef(fieldType, typeName, length, childType,
-        childLen, fields);
+        childLen, childSrc, fields);
     return rslt;
   }
 }

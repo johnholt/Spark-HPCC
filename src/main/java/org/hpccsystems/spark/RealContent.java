@@ -1,92 +1,90 @@
 package org.hpccsystems.spark;
 
-import static org.junit.Assert.assertNotNull;
+import java.io.Serializable;
 
-public class IntegerContent extends Content {
+public class RealContent extends Content implements Serializable {
   private final static long serialVersionUID = 1L;
-  private long value;
+  private double value;
   /**
-   * Constructor for serialization
+   * Empty constructor for serialization.
    */
-  protected IntegerContent() {
-    super();
+  protected RealContent() {
     this.value = 0;
   }
   /**
-   * Convenience constructor when no field def is available
-   * @param name
-   * @param value
+   * Convenience constructor when FieldDef is not available
+   * @param name the field name
+   * @param v the value of the content
    */
-  public IntegerContent(String name, long v) {
-    super(FieldType.INTEGER, name);
+  public RealContent(String name, double v) {
+    super(FieldType.REAL, name);
     this.value = v;
   }
   /**
    * Normal constructor
-   * @param def the field definition
-   * @param v the value
+   * @param def
+   * @param v
    */
-  public IntegerContent(FieldDef def, long v) {
+  public RealContent(FieldDef def, double v) {
     super(def);
-    if (def.getFieldType() != FieldType.INTEGER) {
-      throw new IllegalArgumentException("Def must have Integer type");
+    if (def.getFieldType()!=FieldType.REAL) {
+      throw new IllegalArgumentException("Field definition has wrong type");
     }
     this.value = v;
   }
-  // access
   @Override
   public int numFields() {
     return 1;
   }
   @Override
   public long asInt() {
-    return value;
+    return (long) this.value;
   }
   @Override
   public long[] asSetOfInt() {
     long[] rslt = new long[1];
-    rslt[0] = value;
+    rslt[0] = (long) this.value;
     return rslt;
   }
   @Override
   public double asReal() {
-    return (double) value;
+    return this.value;
   }
   @Override
   public double[] asSetOfReal() {
     double[] rslt = new double[1];
-    rslt[0] = (double) value;
+    rslt[0] = this.value;
     return rslt;
   }
   @Override
   public String asString() {
-    String rslt = Long.toString(this.value);
+    String rslt = Double.toString(this.value);
     return rslt;
   }
   @Override
   public String[] asSetOfString() {
     String[] rslt = new String[1];
-    rslt[0] = Long.toString(this.value);
+    rslt[0] = Double.toString(this.value);
     return rslt;
   }
   @Override
   public Content[] asRecord() {
-    Content[] w = new Content[1];
-    w[0] = this;
-    return w;
+    Content[] rslt = new Content[1];
+    rslt[0] = this;
+    return rslt;
   }
   @Override
   public RecordContent[] asSetOfRecord() {
     RecordContent[] rslt = new RecordContent[1];
-    Content[] f = new Content[1];
-    f[0] = this;
-    rslt[0] = new RecordContent("Dummy", f);
+    Content[] w = new Content[1];
+    w[0] = this;
+    rslt[0] = new RecordContent("Dummy", w);
     return rslt;
   }
   @Override
   public byte[] asBinary() {
     byte[] rslt = new byte[8];
-    long work = this.value;
+    long work = Double.doubleToLongBits(this.value);
     for (int i=0; i<8; i++ ) {
       rslt[7-i] = (byte)(work & ((long)0xff));
       work = work >> 8;

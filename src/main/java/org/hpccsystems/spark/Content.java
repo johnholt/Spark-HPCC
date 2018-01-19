@@ -1,21 +1,26 @@
-/**
- *
- */
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
 /**
- * The field contents include the name and type of the data.
+ * The field contents with the name and type of the data.  This is an
+ * abstract type.  The implementation types are IntegerContent, RealContent,
+ * BooleanContent, StringContent, RecordContent, IntegerSeqContent,
+ * RealSeqContent, BooleanSeqContent, StringSeqContent, and
+ * RecordSeqContent.
+ * If the field is a composite type, the contents can be accessed by
+ * field name.
+ * Each content will supply alternative content.  For instance, an
+ * IntegerContent object can supply a String value of the integer.
  * @author holtjd
  *
  */
-public abstract class FieldContent implements Serializable {
+public abstract class Content implements Serializable {
   static private final long serialVersionUID = 1L;
   private FieldType fieldType;
   private String fieldName;
   //
-  protected FieldContent() {
+  protected Content() {
     this.fieldType = FieldType.MISSING;
     this.fieldName = "";
   }
@@ -25,7 +30,7 @@ public abstract class FieldContent implements Serializable {
    * @param typ the type of the content
    * @param name field or column name of this content
    */
-  public FieldContent(FieldType typ, String name) {
+  public Content(FieldType typ, String name) {
     this.fieldType = typ;
     this.fieldName = name;
   }
@@ -33,7 +38,7 @@ public abstract class FieldContent implements Serializable {
    * Normal constructor
    * @param def the definition for this field
    */
-  public FieldContent(FieldDef def) {
+  public Content(FieldDef def) {
     this.fieldType = def.getFieldType();
     this.fieldName = def.getFieldName();
   }
@@ -41,12 +46,30 @@ public abstract class FieldContent implements Serializable {
    * The name of this field
    * @return field name
    */
-  public String getName() {  return fieldName; }
+  public String getName() {  return this.fieldName; }
   /**
    * The type name of this field
    * @return type name
    */
-  public String getTypeName() { return fieldType.name(); }
+  public String getTypeName() { return this.fieldType.name(); }
+  /**
+   * The type for this content.
+   * @return field type enumeration value
+   */
+  public FieldType getFieldType() { return this.fieldType; }
+  /**
+   * Display the content with name.
+   * @return a visual representation
+   */
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(this.fieldType.toString());
+    sb.append(" field ");
+    sb.append(this.fieldName);
+    sb.append("=");
+    sb.append(this.asString());
+    return sb.toString();
+  }
   /**
    * The number of elements for this type.  One for scalars.
    * @return the number of elements, 1 for scalars and sets of scalars,
@@ -93,16 +116,26 @@ public abstract class FieldContent implements Serializable {
    */
   public abstract String[] asSetOfString();
   /**
-   * The field content as a record.  A single field record
+   * The field content of a record.  A single field record
    * is created if necessary.  This content type is either a file
    * record, or a sub-structure on a record.
    * @return the record
    */
-  public abstract Record asRecord();
+  public abstract Content[] asRecord();
   /**
    * The field content is a set of records.  A file record
    * has a child dataset.
    * @return the dataset
    */
-  public abstract Record[] asSetOfRecord();
+  public abstract RecordContent[] asSetOfRecord();
+  /**
+   * A binary string of the data
+   * @return an array of byte values of the data
+   */
+  public abstract byte[] asBinary();
+  /**
+   * An array of byte arrays
+   * @return an array of byte arrays
+   */
+  public abstract byte[][] asSetOfBinary();
 }

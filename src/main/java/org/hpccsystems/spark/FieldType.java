@@ -16,12 +16,14 @@ public enum FieldType implements Serializable {
   REAL(true, "Real", false),
   STRING(true, "String", false),
   BOOLEAN(true, "Boolean", false),
+  BINARY(true, "Binary data", false),
   RECORD(false, "Record", true),
   MISSING(true, "Missing value", false),
   SET_OF_INTEGER(false, "Set of integers", false),
   SET_OF_REAL(false, "Set of reals", false),
   SET_OF_STRING(false, "Set of strings", false),
   SET_OF_BOOLEAN(false, "Set of Booleans", false),
+  SET_OF_BINARY(false, "Set of Binary strings", false),
   SET_OF_RECORD(false, "Set of records", true),
   SET_OF_MISSING(false, "Set of unknown", false);
 

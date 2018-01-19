@@ -27,12 +27,12 @@ public class HpccRemoteFileReader {
   public Record remoteRead() throws java.io.EOFException {
     if (eof || pos>fp.getPartSize()) throw new java.io.EOFException("HPCC file partition at EOF");
     pos += 100;
-    ArrayList<FieldContent> test_data = new ArrayList<FieldContent>();
+    ArrayList<Content> test_data = new ArrayList<Content>();
     String field1 = "File part "+ String.valueOf(fp.getThisPart());
     test_data.add(new StringContent("F1", field1));
     String field2 = "pos " + String.valueOf(pos);
     test_data.add(new StringContent("F2", field2));
-    FieldContent[] content = test_data.toArray(new FieldContent[0]);
+    Content[] content = test_data.toArray(new Content[0]);
     Record rslt = new Record(content, fp.getFilename(), fp.getThisPart(), pos);
     return rslt;
   }

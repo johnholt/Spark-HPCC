@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.hpccsystems.spark;
 
 import java.text.NumberFormat;
@@ -10,7 +7,7 @@ import java.text.NumberFormat;
  * @author holtjd
  *
  */
-public class StringContent extends FieldContent {
+public class StringContent extends Content {
   private static final long serialVersionUID = 1L;
   static private NumberFormat fmt = NumberFormat.getInstance();
   private String value;
@@ -37,6 +34,9 @@ public class StringContent extends FieldContent {
    */
   public StringContent(FieldDef def, String v) {
     super(def);
+    if (def.getFieldType() != FieldType.STRING) {
+      throw new IllegalArgumentException("def must be String type");
+    }
     this.value = v;
   }
   /*
@@ -110,22 +110,39 @@ public class StringContent extends FieldContent {
    * @see org.hpccsystems.spark.FieldContent#asRecord()
    */
   @Override
-  public Record asRecord() {
-    FieldContent[] w = new FieldContent[1];
+  public Content[] asRecord() {
+    Content[] w = new Content[1];
     w[0] = this;
-    Record rslt = new Record(w, "Dummy", 0, 0);
-    return rslt;
+    return w;
   }
   /*
    * (non-Javadoc)
    * @see org.hpccsystems.spark.FieldContent#asSetOfRecord()
    */
   @Override
-  public Record[] asSetOfRecord() {
-    Record[] rslt = new Record[1];
-    FieldContent[] f = new FieldContent[1];
+  public RecordContent[] asSetOfRecord() {
+    RecordContent[] rslt = new RecordContent[1];
+    Content[] f = new Content[1];
     f[0] = this;
-    rslt[0] = new Record(f, "Dummy", 0, 0);
+    rslt[0] = new RecordContent("Dummy", f);
+    return rslt;
+  }
+  @Override
+  public byte[] asBinary() {
+    char[] chars = this.value.toCharArray();
+    byte[] rslt = new byte[chars.length*Character.BYTES];
+    for (int i=0; i<chars.length; i++ ) {
+      int high = i*2;
+      int low = high + 1;
+      rslt[high] = (byte)((chars[i] & 0xff00) >> 8);
+      rslt[low] = (byte)(chars[i] & 0x00ff);
+    }
+    return rslt;
+  }
+  @Override
+  public byte[][] asSetOfBinary() {
+    byte[][] rslt = new byte[1][];
+    rslt[0] = this.asBinary();
     return rslt;
   }
 }

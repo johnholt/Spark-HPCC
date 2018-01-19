@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.hpccsystems.spark.data.DefToken;
+import org.hpccsystems.spark.data.HpccSrcType;
 import org.hpccsystems.spark.data.UnusableDataDefinitionException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
@@ -152,7 +153,7 @@ public class RecordDef implements Serializable {
     }
     // create record def
     FieldDef root = new FieldDef("root", FieldType.RECORD, "none",
-        len, childLen, type_id==type_record,
+        len, childLen, type_id==type_record, HpccSrcType.UNKNOWN,
         record_fields.toArray(new FieldDef[0]));
     RecordDef rslt = new RecordDef(def, root);
     return rslt;
@@ -183,4 +184,11 @@ public class RecordDef implements Serializable {
    * @return root definition
    */
   public FieldDef getRootDef() { return root; }
+  /**
+   * String display of the record definition.
+   * @return the definition in display form
+   */
+  public String toString() {
+    return "RECORD: " + root.toString();
+  }
 }
