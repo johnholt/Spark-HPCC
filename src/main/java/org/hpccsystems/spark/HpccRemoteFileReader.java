@@ -1,6 +1,8 @@
 package org.hpccsystems.spark;
 
-import java.util.ArrayList;
+import org.hpccsystems.spark.data.BinaryRecordReader;
+import org.hpccsystems.spark.HpccFileException;
+
 
 /**
  * @author holtjd
@@ -9,31 +11,38 @@ import java.util.ArrayList;
 public class HpccRemoteFileReader {
   private RecordDef def;
   private FilePart fp;
-  private boolean eof;
-  private long pos;
+  private BinaryRecordReader brr;
   /**
    * A remote file reader that reads the part identified by the
    * FilePart object using the record definition provided.
    * @param def the defintion of the data
    * @param fp the part of the file, name and location
    */
-  public HpccRemoteFileReader(RecordDef def, FilePart fp) {
-    this.def = def;
+  public HpccRemoteFileReader(FilePart fp, RecordDef rd) {
+    this.def = rd;
     this.fp = fp;
-    this.eof = fp.getPartSize() == 0;
-    this.pos = 0;
+    this.brr = new BinaryRecordReader(fp, def);
   }
-  public boolean eof() { return eof; }
-  public Record remoteRead() throws java.io.EOFException {
-    if (eof || pos>fp.getPartSize()) throw new java.io.EOFException("HPCC file partition at EOF");
-    pos += 100;
-    ArrayList<Content> test_data = new ArrayList<Content>();
-    String field1 = "File part "+ String.valueOf(fp.getThisPart());
-    test_data.add(new StringContent("F1", field1));
-    String field2 = "pos " + String.valueOf(pos);
-    test_data.add(new StringContent("F2", field2));
-    Content[] content = test_data.toArray(new Content[0]);
-    Record rslt = new Record(content, fp.getFilename(), fp.getThisPart(), pos);
+  public boolean hasNext() {
+    boolean rslt;
+    try {
+      rslt = brr.hasNext();
+    } catch (HpccFileException e) {
+      rslt = false;
+      System.err.println("Read failure for " + fp.toString());
+      e.printStackTrace(System.err);
+    }
+    return rslt;
+  }
+  public Record next() {
+    Record rslt = null;
+    try {
+      rslt = brr.getNext();
+    } catch (HpccFileException e) {
+      System.err.println("Read failure for " + fp.toString());
+      e.printStackTrace(System.err);
+      throw new java.util.NoSuchElementException("Fatal read error");
+    }
     return rslt;
   }
 }

@@ -26,7 +26,8 @@ public class RDDTest {
   public static void main(String[] args) throws Exception {
     String hpcc_ip = "10.239.40.2";
     String hpcc_port = "8010";
-    String hpcc_file = "~thor::testdata::iris";
+    //String hpcc_file = "~thor::testdata::iris";
+    String hpcc_file = "~THOR::JDH::JAPI_FIXED";
     String protocol = "http";
     //
     SparkConf conf = new SparkConf().setAppName("Spark HPCC test");
@@ -47,6 +48,7 @@ public class RDDTest {
     FilePart[] parts = hpcc.getFileParts();
     System.out.println("Getting record definition");
     RecordDef rd = hpcc.getRecordDefinition();
+    System.out.println(rd.toString());
     System.out.println("Creating RDD");
     HpccRDD myRDD = new HpccRDD(sc, parts, rd);
     System.out.println("Getting local iterator");

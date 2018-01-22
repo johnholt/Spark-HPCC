@@ -61,13 +61,15 @@ public abstract class Content implements Serializable {
    * Display the content with name.
    * @return a visual representation
    */
-  public String toString() {
+  public final String toString() {
     StringBuilder sb = new StringBuilder();
+    sb.append("{");
     sb.append(this.fieldType.toString());
     sb.append(" field ");
     sb.append(this.fieldName);
     sb.append("=");
     sb.append(this.asString());
+    sb.append("}");
     return sb.toString();
   }
   /**

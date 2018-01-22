@@ -7,6 +7,8 @@ import org.apache.spark.Partition;
 import org.apache.spark.SparkContext;
 import org.apache.spark.TaskContext;
 import org.apache.spark.rdd.RDD;
+import org.hpccsystems.spark.HpccRemoteFileReader;
+import org.hpccsystems.spark.HpccFileException;
 import org.apache.spark.InterruptibleIterator;
 import scala.collection.Seq;
 import scala.collection.mutable.ArraySeq;
@@ -46,39 +48,12 @@ public class HpccRDD extends RDD<Record> implements Serializable {
   @Override
   public InterruptibleIterator<Record> compute(Partition p_arg, TaskContext ctx) {
     final FilePart this_part = (FilePart) p_arg;
-    final RecordDef def = this.def;
+    final RecordDef rd = this.def;
     Iterator<Record> iter = new Iterator<Record>() {
-      private boolean first_pending = true;
-      private boolean eof = false;
-      private HpccRemoteFileReader rfr
-                      = new HpccRemoteFileReader(def, this_part);
-      private Record latest;
+      private HpccRemoteFileReader rfr = new HpccRemoteFileReader(this_part, rd);
       //
-      private Record readRemote() {
-        Record rslt = null;
-        try {
-          rslt = rfr.remoteRead();
-        } catch (java.io.EOFException e) {
-          eof = true;
-        }
-        return rslt;
-      }
-      public boolean hasNext() {
-        if (first_pending) {
-          latest = readRemote();
-        }
-        first_pending = false;
-        return eof;
-      }
-      public Record next() {
-        if (first_pending) {
-          latest = readRemote();
-          first_pending = false;
-        }
-        Record rslt = latest;
-        latest = readRemote();
-        return rslt;
-      }
+      public boolean hasNext() { return this.rfr.hasNext();}
+      public Record next() { return this.rfr.next(); }
     };
     scala.collection.Iterator<Record> s_iter
         = JavaConverters.asScalaIteratorConverter(iter).asScala();

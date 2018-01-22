@@ -114,7 +114,7 @@ public class BinaryRecordReader implements IRecordReader {
                     ((long)(bwork[4] & 0xff) << 24) |
                     ((long)(bwork[5] & 0xff) << 16) |
                     ((long)(bwork[6] & 0xff) <<  8) |
-                    ((long)(bwork[7]))  );
+                    ((long)(bwork[7] & 0xff))  );
           x = new IntegerContent(fd.getFieldName(), v);
           fields.add(x);
           consumed += fd.getDataLen();
@@ -122,7 +122,7 @@ public class BinaryRecordReader implements IRecordReader {
         case REAL:
           for (int i=0; i<fd.getDataLen(); i++) {
             if (fd.getSourceType() == HpccSrcType.BIG_ENDIAN) {
-              bwork[i] = src[i+consumed];
+              bwork[i] = src[i+start+consumed];
             } else {
               bwork[i] = src[start+consumed+fd.getDataLen()-1-i];
             }
@@ -132,7 +132,7 @@ public class BinaryRecordReader implements IRecordReader {
             int u4 = (((int)(bwork[0] & 0xff) << 24) |
                       ((int)(bwork[1] & 0xff) << 16) |
                       ((int)(bwork[2] & 0xff) <<  8) |
-                      ((int)(bwork[3])));
+                      ((int)(bwork[3] & 0xff)));
             u = Float.intBitsToFloat(u4);
           } else {
             long u8 = (((long)(bwork[0] & 0xff) << 56) |
@@ -142,7 +142,7 @@ public class BinaryRecordReader implements IRecordReader {
                        ((long)(bwork[4] & 0xff) << 24) |
                        ((long)(bwork[5] & 0xff) << 16) |
                        ((long)(bwork[6] & 0xff) <<  8) |
-                       ((long)(bwork[7]))  );
+                       ((long)(bwork[7] & 0xff))  );
             u = Double.longBitsToDouble(u8);
           }
           x = new RealContent(fd.getFieldName(), u);
