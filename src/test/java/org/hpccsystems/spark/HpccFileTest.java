@@ -15,7 +15,8 @@ public class HpccFileTest {
     //String testName = "~THOR::JDH::JAPI_TEST1";
     //String testName = "~THOR::JDH::JAPI_TEST2";
     //String testName = "~THOR::JDH::JAPI_FIXED";
-    String testName = "~THOR::TESTDATA::IRIS";
+    //String testName = "~THOR::TESTDATA::IRIS";
+    String testName = "~THOR::JDH::JAPI_FIXED_MULTI";
     HpccFile hpcc = new HpccFile(testName, "http", ML_Dev, "8010", "", "");
     System.out.println("Getting file parts");
     FilePart[] parts = hpcc.getFileParts();
@@ -40,20 +41,32 @@ public class HpccFileTest {
     System.out.println(pc.getTrans());
     System.out.println(pc.getIP());
     System.out.println(pc.getFilename());
-    byte[] block = pc.readBlock();
-    StringBuilder sb = new StringBuilder();
-    sb.append("Handle ");
-    sb.append(pc.getHandle());
-    sb.append(", data length=");
-    sb.append(block.length);
-    System.out.println(sb.toString());
-    for (int i=0; i<block.length; i+=16) {
-      sb.delete(0, sb.length());
-      for (int j=0; j<16 && i+j<block.length; j++) {
-        sb.append(String.format("%02X ", block[i+j]));
-        sb.append(" ");
-      }
+    pc.setSimulateFail(true);
+    boolean wantData = true;
+    while (wantData) {
+      byte[] block = pc.readBlock();
+      StringBuilder sb = new StringBuilder();
+      sb.append("Handle ");
+      sb.append(pc.getHandle());
+      sb.append(", data length=");
+      sb.append(block.length);
       System.out.println(sb.toString());
+      for (int i=0; i<block.length; i+=16) {
+        sb.delete(0, sb.length());
+        for (int j=0; j<16 && i+j<block.length; j++) {
+          sb.append(String.format("%02X ", block[i+j]));
+          sb.append(" ");
+        }
+        System.out.println(sb.toString());
+      }
+      if (pc.isClosed()) System.out.println("Closed connection");
+      else {
+        System.out.print("Handle trans is ");
+        System.out.println(pc.getHandleTrans());
+        System.out.println("CursorBin transaction is: ");
+        System.out.println(pc.getCursorTrans());
+      }
+      wantData = block.length > 0;
     }
     System.out.println("End test");
   }

@@ -53,6 +53,19 @@ public class FilePart implements Partition, Serializable {
   public int index() {
     return this_part - 1;
   }
+  /* (non-Javadoc)
+   * Spark core 2.10 needs this defined, not needed in 2.11
+   */
+  public boolean org$apache$spark$Partition$$super$equals(Object arg0) {
+    if (!(arg0 instanceof FilePart)) return false;
+    FilePart fp0 = (FilePart) arg0;
+    if (!this.getFilename().equals(fp0.getFilename())) return false;
+    if (this.getNumParts() != fp0.getNumParts()) return false;
+    if (this.getThisPart() != fp0.getThisPart()) return false;
+    if (!this.getPrimaryIP().equals(fp0.getPrimaryIP())) return false;
+    if (!this.getSecondaryIP().equals(fp0.getSecondaryIP())) return false;
+    return true;
+  }
   /**
    * Create an array of Spark partition objects for HPCC file parts.
    * @param num_parts the number of parts for the file
@@ -93,4 +106,5 @@ public class FilePart implements Partition, Serializable {
       return 0;
     }
   };
+
 }

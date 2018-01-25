@@ -1,11 +1,8 @@
-/**
- *
- */
 package org.hpccsystems.spark.data;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+
 import org.hpccsystems.spark.FilePart;
 import org.hpccsystems.spark.RecordDef;
 import org.hpccsystems.spark.HpccFileException;
@@ -18,6 +15,7 @@ import org.hpccsystems.spark.HpccFileException;
 public class PlainConnection {
   private boolean active;
   private boolean closed;
+  private boolean simulateFail;
   private byte[] cursorBin;
   private int handle;
   private FilePart filePart;
@@ -43,27 +41,38 @@ public class PlainConnection {
     this.closed = false;
     this.handle = 0;
     this.cursorBin = new byte[0];
+    this.simulateFail = false;
   }
   /**
    * The remote file name.
    * @return file name
    */
-  public String getFilename() { return filePart.getFilename(); }
+  public String getFilename() { return this.filePart.getFilename(); }
   /**
    * The primary IP for the file part
    * @return IP address
    */
-  public String getIP() { return filePart.getPrimaryIP(); }
+  public String getIP() { return this.filePart.getPrimaryIP(); }
   /**
    * The port number for the remote read service
    * @return port number
    */
-  public int getPort() { return port; }
+  public int getPort() { return this.port; }
   /**
    * The read transaction in JSON format
    * @return read transaction
    */
-  public String getTrans() { return makeRequest(); }
+  public String getTrans() { return this.makeInitialRequest(); }
+  /**
+   * The request string used with a handle
+   * @return JSON string
+   */
+  public String getHandleTrans() { return this.makeHandleRequest(); }
+  /**
+   * transaction when a cursor is required for the next read.
+   * @return a JSON request
+   */
+  public String getCursorTrans() { return this.makeCursorRequest(); }
   /**
    * Is the read active?
    */
@@ -80,6 +89,20 @@ public class PlainConnection {
    */
   public int getHandle() { return handle; }
   /**
+   * Simulate a handle failure and use the file cursor instead.  The
+   * handle is set to an invalid value so the THOR node will indicate
+   * that the handle is unknown and request a cursor.
+   * @param v true indicates that an invalid handle should be sent
+   * to force the fall back to a cursor.  NOTE: this class reads
+   * ahead, so the use this before the first read.
+   * @return the prior value
+   */
+  public boolean setSimulateFail(boolean v) {
+    boolean old = this.simulateFail;
+    this.simulateFail = v;
+    return old;
+  }
+  /**
    * Read a block of the remote file from a THOR node
    * @return the block sent by the node
    * @throws HpccFileException a problem with the read operation
@@ -87,48 +110,36 @@ public class PlainConnection {
   public byte[] readBlock()
     throws HpccFileException {
     byte[] rslt = new byte[0];
-    if (this.closed) return rslt;  // no data left to send
-    if (!this.active) makeActive();
-    try {
-      Charset charset = Charset.forName("ISO-8859-1");
-      String readTrans = makeRequest();
-      int transLen = readTrans.length();
-      dos.writeInt(transLen);
-      dos.write(readTrans.getBytes(charset),0,transLen);
-      dos.flush();
-    } catch (IOException e) {
-      throw new HpccFileException("Failed on remote read read trans", e);
+    if (this.closed) return rslt;    // no data left to send
+    if (!this.active) makeActive();  // do the first read
+    int len = readReplyLen();
+    if (len==0) {
+      this.closed = true;
+      return rslt;
     }
-    int len = 0;
-    boolean hi_flag = false;
+    if (len < 4 ) {
+      throw new HpccFileException("Early data termination, no handle");
+    }
     try {
-      len = dis.readInt();
-      if (len < 0) {
-        hi_flag = true;
-        len &= 0x7FFFFFFF;
-      } else if (len==0) {
-        this.closed = true;
-        return rslt;
-      }
-      byte flag = dis.readByte();
-      if (flag==hyphen[0]) {
-        int msgLen = dis.readInt();
-        byte[] msg = new byte[msgLen];
-        this.dis.read(msg);
-        String message = new String(msg, hpccSet);
-        throw new HpccFileException("Failed with " + message);
-      }
-      if (flag != uc_J[0]) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Invalid response of ");
-        sb.append(String.format("%02X ", flag));
-        sb.append("received from THOR node ");
-        sb.append(this.getIP());
-        throw new HpccFileException(sb.toString());
-      }
-      len--;  // account for flag byte read
       this.handle = dis.readInt();
-      // need to deal with 0 handle -> unknown needs to read again
+      if (this.handle==0) {
+        len = retryWithCursor();
+        if (len==0) {
+          this.closed = true;
+          return rslt;
+        }
+        if (len < 4) {
+          throw new HpccFileException("Early data termination on retry, no handle");
+        }
+        this.handle = dis.readInt();
+        if (this.handle==0) {
+          throw new HpccFileException("Read retry failed");
+        }
+      }
+    } catch (IOException e) {
+      throw new HpccFileException("Error during read block", e);
+    }
+    try {
       int dataLen = dis.readInt();
       if (dataLen == 0) {
         closeConnection();
@@ -146,6 +157,17 @@ public class PlainConnection {
     } catch (IOException e) {
       throw new HpccFileException("Error during read block", e);
     }
+    if (this.simulateFail) this.handle = -1;
+    String handleTrans = this.getHandleTrans();
+    try  {
+      int lenHandleTrans = handleTrans.length();
+      Charset charset = Charset.forName("ISO-8859-1");
+      this.dos.writeInt(lenHandleTrans);
+      this.dos.write(handleTrans.getBytes(charset),0,lenHandleTrans);
+      this.dos.flush();
+    } catch (IOException e) {
+      throw new HpccFileException("Failure on handle transaction", e);
+    }
     return rslt;
   }
   /**
@@ -157,26 +179,36 @@ public class PlainConnection {
     this.handle = 0;
     this.cursorBin = new byte[0];
     try {
-      sock = new java.net.Socket(this.getIP(), port);
+      sock = new java.net.Socket(this.getIP(), this.port);
     } catch (java.net.UnknownHostException e) {
       throw new HpccFileException("Bad file part addr "+this.getIP(), e);
     } catch (java.io.IOException e) {
       throw new HpccFileException(e);
     }
     try {
-      dos = new java.io.DataOutputStream(sock.getOutputStream());
-      dis = new java.io.DataInputStream(sock.getInputStream());
+      this.dos = new java.io.DataOutputStream(sock.getOutputStream());
+      this.dis = new java.io.DataInputStream(sock.getInputStream());
     } catch (java.io.IOException e) {
       throw new HpccFileException("Failed to create streams", e);
     }
     this.active = true;
+    try {
+      Charset charset = Charset.forName("ISO-8859-1");
+      String readTrans = makeInitialRequest();
+      int transLen = readTrans.length();
+      this.dos.writeInt(transLen);
+      this.dos.write(readTrans.getBytes(charset),0,transLen);
+      this.dos.flush();
+    } catch (IOException e) {
+      throw new HpccFileException("Failed on initial remote read read trans", e);
+    }
   }
   /**
    * Creates a request string using the record definition, filename,
    * and current state of the file transfer.
-   * @return request string
+   * @return JSON request string
    */
-  private String makeRequest() {
+  private String makeInitialRequest() {
     StringBuilder sb = new StringBuilder(50
         + this.filePart.getFilename().length()
         + this.recDef.getJsonInputDef().length()
@@ -191,6 +223,42 @@ public class PlainConnection {
     sb.append("\n }  }\n\n");
     return sb.toString();
   }
+  /**
+   * Request using a handle to read the next block.
+   * @return the request as a JSON string
+   */
+  private String makeHandleRequest() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{\n  \"format\" : \"binary\", \n  \"cursor\" : \"");
+    sb.append(Integer.toString(this.handle));
+    sb.append("\" \n}");
+    return sb.toString();
+  }
+  private String makeCursorRequest() {
+    StringBuilder sb = new StringBuilder(80
+        + this.filePart.getFilename().length()
+        + this.recDef.getJsonInputDef().length()
+        + this.recDef.getJsonOutputDef().length()
+        + (int)(this.cursorBin.length*1.4));
+    sb.append("{ \"format\" : \"binary\", ");
+    String w = java.util.Base64.getEncoder().encodeToString(this.cursorBin);
+    sb.append("\n   \"cursorBin\" : { \"#valuebin\" : \"");
+    sb.append(w);
+    sb.append("\" }, ");
+    sb.append(" \n \"node\" : ");
+    sb.append("{\n \"kind\" : \"diskread\",\n \"fileName\" : \"");
+    sb.append(this.filePart.getFilename());
+    sb.append("\",\n \"input\" : ");
+    sb.append(this.recDef.getJsonInputDef());
+    sb.append(", \n \"output\" : ");
+    sb.append(this.recDef.getJsonOutputDef());
+    sb.append("\n } }\n\n");
+    return sb.toString();
+  }
+  /**
+   * Close the connection and clear the references
+   * @throws HpccFileException
+   */
   private void closeConnection() throws HpccFileException {
     this.closed = true;
     try {
@@ -201,5 +269,95 @@ public class PlainConnection {
     this.dos = null;
     this.dis = null;
     this.sock = null;
+  }
+  /**
+   * Read the reply length and process failures if indicated.
+   * @return length of the reply less failure indicator
+   * @throws HpccFileException
+   */
+  private int readReplyLen() throws HpccFileException {
+    int len = 0;
+    boolean hi_flag = false;  // is a response without this set always an error?
+    try {
+      len = dis.readInt();
+      if (len < 0) {
+        hi_flag = true;
+        len &= 0x7FFFFFFF;
+      }
+      if (len == 0) return 0;
+      byte flag = dis.readByte();
+      if (flag==hyphen[0]) {
+        if (len<5) throw new HpccFileException("Failed with no message sent");
+        int msgLen = dis.readInt();
+        byte[] msg = new byte[msgLen];
+        this.dis.read(msg);
+        String message = new String(msg, hpccSet);
+        throw new HpccFileException("Failed with " + message);
+      }
+      if (flag != uc_J[0]) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Invalid response of ");
+        sb.append(String.format("%02X ", flag));
+        sb.append("received from THOR node ");
+        sb.append(this.getIP());
+        sb.append(" and return length hi-bit was ");
+        sb.append(hi_flag);
+        throw new HpccFileException(sb.toString());
+      }
+      len--;  // account for flag byte read
+    } catch (IOException e) {
+      throw new HpccFileException("Error during read block", e);
+    }
+    return len;
+  }
+  /**
+   * Retry with a cursor and read the reply.  Process failures as indicated.
+   * @return the length pf the reply less failure indication
+   * @throws HpccFileException
+   */
+  private int retryWithCursor() throws HpccFileException {
+    String retryTrans = this.makeCursorRequest();
+    int len = retryTrans.length();
+    try {
+      Charset charset = Charset.forName("ISO-8859-1");
+      this.dos.writeInt(len);
+      this.dos.write(retryTrans.getBytes(charset),0,len);
+      this.dos.flush();
+    } catch (IOException e) {
+      throw new HpccFileException("Failed on remote read read retry", e);
+    }
+    len = 0;
+    boolean hi_flag = false;  // is a response without this set always an error?
+    try {
+      len = dis.readInt();
+      if (len < 0) {
+        hi_flag = true;
+        len &= 0x7FFFFFFF;
+      }
+      if (len==0) return 0;
+      byte flag = dis.readByte();
+      if (flag==hyphen[0]) {
+        if (len<5) throw new HpccFileException("Failed, no message");
+        int msgLen = dis.readInt();
+        byte[] msg = new byte[msgLen];
+        this.dis.read(msg);
+        String message = new String(msg, hpccSet);
+        throw new HpccFileException("Failed with " + message);
+      }
+      if (flag != uc_J[0]) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Invalid response of ");
+        sb.append(String.format("%02X ", flag));
+        sb.append("received from THOR node ");
+        sb.append(this.getIP());
+        sb.append(" and return length hi-bit was ");
+        sb.append(hi_flag);
+        throw new HpccFileException(sb.toString());
+      }
+      len--;  // account for flag byte read
+    } catch (IOException e) {
+      throw new HpccFileException("Error during read block", e);
+    }
+    return len;
   }
 }
