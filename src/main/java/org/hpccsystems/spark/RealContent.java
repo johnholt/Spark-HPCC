@@ -32,32 +32,21 @@ public class RealContent extends Content implements Serializable {
     }
     this.value = v;
   }
+  /**
+   * The content in raw form.
+   * @return
+   */
+  public double asReal() {
+    return this.value;
+  }
+
   @Override
   public int numFields() {
     return 1;
   }
+
   @Override
-  public long asInt() {
-    return (long) this.value;
-  }
-  @Override
-  public long[] asSetOfInt() {
-    long[] rslt = new long[1];
-    rslt[0] = (long) this.value;
-    return rslt;
-  }
-  @Override
-  public double asReal() {
-    return this.value;
-  }
-  @Override
-  public double[] asSetOfReal() {
-    double[] rslt = new double[1];
-    rslt[0] = this.value;
-    return rslt;
-  }
-  @Override
-  public String asString() {
+  public String asString(String fieldSep, String elementSep) {
     String rslt = Double.toString(this.value);
     return rslt;
   }
@@ -65,36 +54,6 @@ public class RealContent extends Content implements Serializable {
   public String[] asSetOfString() {
     String[] rslt = new String[1];
     rslt[0] = Double.toString(this.value);
-    return rslt;
-  }
-  @Override
-  public Content[] asRecord() {
-    Content[] rslt = new Content[1];
-    rslt[0] = this;
-    return rslt;
-  }
-  @Override
-  public RecordContent[] asSetOfRecord() {
-    RecordContent[] rslt = new RecordContent[1];
-    Content[] w = new Content[1];
-    w[0] = this;
-    rslt[0] = new RecordContent("Dummy", w);
-    return rslt;
-  }
-  @Override
-  public byte[] asBinary() {
-    byte[] rslt = new byte[8];
-    long work = Double.doubleToLongBits(this.value);
-    for (int i=0; i<8; i++ ) {
-      rslt[7-i] = (byte)(work & ((long)0xff));
-      work = work >> 8;
-    }
-    return rslt;
-  }
-  @Override
-  public byte[][] asSetOfBinary() {
-    byte[][] rslt = new byte[1][];
-    rslt[0] = this.asBinary();
     return rslt;
   }
 

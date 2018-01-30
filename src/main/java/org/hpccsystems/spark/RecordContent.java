@@ -1,23 +1,25 @@
 package org.hpccsystems.spark;
 
+import java.io.Serializable;
+
 /**
  * @author holtjd
  * The row content, an group of Content objects.
  */
-public class RecordContent extends Content {
+public class RecordContent extends Content implements Serializable{
   final private static long serialVersionUID = 1L;
   private Content[] items;
   /**
    * Empty constructor for serialization
    */
-  private RecordContent() {
+  protected RecordContent() {
     this.items = new Content[0];
   }
   /**
    * Make a deep copy of the source object
    * @param src the content to be copied
    */
-  private RecordContent(RecordContent src) {
+  protected RecordContent(RecordContent src) {
     this.items = new Content[src.items.length];
     for (int i=0; i<src.items.length; i++) this.items[i] = src.items[i];
   }
@@ -31,7 +33,6 @@ public class RecordContent extends Content {
     this.items = new Content[fields.length];
     for (int i=0; i<fields.length; i++) this.items[i] = fields[i];
   }
-
   /**
    * Normally used constructor.
    * @param def the fieldDef for the record
@@ -45,6 +46,15 @@ public class RecordContent extends Content {
     this.items = new Content[fields.length];
     for (int i=0; i<fields.length; i++) this.items[i] = fields[i];
   }
+  /**
+   * As a copy of the fields.
+   * @return
+   */
+  public Content[] asFieldArray() {
+    Content[] rslt = new Content[this.items.length];
+    for (int i=0; i<this.items.length; i++) rslt[i] = this.items[i];
+    return rslt;
+  }
 
   /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#numFields()
@@ -55,49 +65,14 @@ public class RecordContent extends Content {
   }
 
   /* (non-Javadoc)
-   * @see org.hpccsystems.spark.Content#asInt()
-   */
-  @Override
-  public long asInt() {
-    return 0;
-  }
-
-  /* (non-Javadoc)
-   * @see org.hpccsystems.spark.Content#asSetOfInt()
-   */
-  @Override
-  public long[] asSetOfInt() {
-    long[] rslt = new long[0];
-    return rslt;
-  }
-
-  /* (non-Javadoc)
-   * @see org.hpccsystems.spark.Content#asReal()
-   */
-  @Override
-  public double asReal() {
-    return 0;
-  }
-
-  /* (non-Javadoc)
-   * @see org.hpccsystems.spark.Content#asSetOfReal()
-   */
-  @Override
-  public double[] asSetOfReal() {
-    double[] rslt = new double[0];
-    return rslt;
-  }
-
-  /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#asString()
    */
   @Override
-  public String asString() {
+  public String asString(String fieldSep, String elementSep) {
     StringBuilder sb = new StringBuilder();
-    for (Content fld : this.items) {
-      sb.append("{");
-      sb.append(fld.toString());
-      sb.append("}");
+    for (int i=0; i<items.length; i++) {
+      if (i>0) sb.append(fieldSep);
+      sb.append(items[i].toString());
     }
     return sb.toString();
   }
@@ -109,37 +84,6 @@ public class RecordContent extends Content {
   public String[] asSetOfString() {
     String[] rslt = new String[1];
     rslt[0] = this.asString();
-    return rslt;
-  }
-
-  /* (non-Javadoc)
-   * @see org.hpccsystems.spark.Content#asRecord()
-   */
-  @Override
-  public Content[] asRecord() {
-    Content[] rslt = new Content[this.items.length];
-    for (int i=0; i<this.items.length; i++) rslt[i] = this.items[i];
-    return rslt;
-  }
-
-  /* (non-Javadoc)
-   * @see org.hpccsystems.spark.Content#asSetOfRecord()
-   */
-  @Override
-  public RecordContent[] asSetOfRecord() {
-    RecordContent[] rslt = new RecordContent[1];
-    rslt[0] = new RecordContent(this);
-    return rslt;
-  }
-  @Override
-  public byte[] asBinary() {
-    byte[] rslt = new byte[0];
-    return rslt;
-  }
-  @Override
-  public byte[][] asSetOfBinary() {
-    byte[][] rslt = new byte[1][];
-    rslt[0] = this.asBinary();
     return rslt;
   }
 

@@ -5,13 +5,13 @@ import java.io.Serializable;
 /**
  * The field contents with the name and type of the data.  This is an
  * abstract type.  The implementation types are IntegerContent, RealContent,
- * BooleanContent, StringContent, RecordContent, IntegerSeqContent,
- * RealSeqContent, BooleanSeqContent, StringSeqContent, and
+ * BooleanContent, StringContent, BinaryContent, RecordContent, IntegerSeqContent,
+ * RealSeqContent, BooleanSeqContent, StringSeqContent, BinarySeqContent, and
  * RecordSeqContent.
- * If the field is a composite type, the contents can be accessed by
- * field name.
- * Each content will supply alternative content.  For instance, an
- * IntegerContent object can supply a String value of the integer.
+ *
+ * Each instance type will use the corresponding Java primitive type wrappers
+ * to create a string version for the asString and asStringArray methods.
+ *
  * @author holtjd
  *
  */
@@ -79,65 +79,29 @@ public abstract class Content implements Serializable {
    */
   public abstract int numFields();
   /**
-   * The value of the content as a long integer.  Strings and Reals
-   * will be converted.  If the content is a set (array) then the
-   * first value is returned.
-   * @return the content value as a single integer
-   */
-  public abstract long asInt();
-  /**
-   * The contents as a set of long integers.  String and
-   * Real values are converted.
-   * @return the array of long integers.
-   */
-  public abstract long[] asSetOfInt();
-  /**
-   * The content value as a real number.  Integers and Strings are
-   * converted.  If the content is an array, then the first value
-   * is returned.
-   * @return the field value as a Real
-   */
-  public abstract double asReal();
-  /**
-   * The content values as a set of Reals.  Integers and Strings
-   * are converted.
-   * @return the array of Real values
-   */
-  public abstract double[] asSetOfReal();
-  /**
    * The content value as a string.  Integers and Reals are converted
-   * to strings.  If the content is an array, then the first value
-   * is returned.
+   * to strings.  If the content is an array, then the values are separated
+   * by the arraySep value.  If the content is a record, then the values
+   * are separated by the fieldSep value.
+   * @param fieldSep a field separation string used when the type
+   * is an array or sequence
+   * @param elementSep an array element separation string used when there are
+   * more than one value held in an array or sequence
    * @return the field value as a String
    */
-  public abstract String asString();
+  public abstract String asString(String fieldSep, String elementSep);
+  /**
+   * The content value as a string.  Fields are separated by a comma and space
+   * and array entries are separated by a semicolon and space.
+   * @return a string
+   */
+  public String asString() {
+    return this.asString(", ", "; ");
+  }
   /**
    * The content value as an array of Strings.  Integers and Reals are
-   * converted.
+   * converted to strings.
    * @return the array of String values
    */
   public abstract String[] asSetOfString();
-  /**
-   * The field content of a record.  A single field record
-   * is created if necessary.  This content type is either a file
-   * record, or a sub-structure on a record.
-   * @return the record
-   */
-  public abstract Content[] asRecord();
-  /**
-   * The field content is a set of records.  A file record
-   * has a child dataset.
-   * @return the dataset
-   */
-  public abstract RecordContent[] asSetOfRecord();
-  /**
-   * A binary string of the data
-   * @return an array of byte values of the data
-   */
-  public abstract byte[] asBinary();
-  /**
-   * An array of byte arrays
-   * @return an array of byte arrays
-   */
-  public abstract byte[][] asSetOfBinary();
 }
