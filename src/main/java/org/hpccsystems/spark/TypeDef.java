@@ -99,7 +99,6 @@ public class TypeDef implements Serializable {
         break;
       case type_string:
       case type_unicode:
-      case type_utf8:
         this.fixedLength = true;
         this.type = FieldType.STRING;
         break;
@@ -108,6 +107,7 @@ public class TypeDef implements Serializable {
       case type_vstring:
       case type_vunicode:
       case type_vutf8:
+      case type_utf8:
         this.fixedLength = false;
         this.type = FieldType.STRING;
         break;
@@ -183,6 +183,10 @@ public class TypeDef implements Serializable {
       case type_unicode:
       case type_vunicode:
         this.src = HpccSrcType.UTF16LE;
+        break;
+      case type_set:
+      case type_vset:
+        this.src = this.childSrc;
         break;
       default:
         this.src = HpccSrcType.UNKNOWN;
@@ -286,7 +290,9 @@ public class TypeDef implements Serializable {
       if (fieldTypeName.equals(curr.getName())) {
         fieldType = curr.getInteger();
       } else if (lengthName.equals(curr.getName())) {
-        length = (int) curr.getInteger();
+        long rawLength = curr.getInteger();
+        if (rawLength > Integer.MAX_VALUE || rawLength < 0) rawLength = 0;
+        length = (int) rawLength;
       } else if (childName.equals(curr.getName())) {
         String name = curr.getString();
         if (!type_dict.containsKey(name)) {
