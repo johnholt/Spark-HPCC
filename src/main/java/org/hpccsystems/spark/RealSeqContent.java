@@ -8,6 +8,7 @@ import java.io.Serializable;
  */
 public class RealSeqContent extends Content implements Serializable {
   private static final long serialVersionUID = 1L;
+  private boolean isAll;
   private double[] value;
 
   /**
@@ -15,28 +16,34 @@ public class RealSeqContent extends Content implements Serializable {
    */
   protected RealSeqContent() {
     this.value = new double[0];
+    this.isAll = false;
   }
 
   /**
    * @param name the field name
    * @param v the value for this content item
+   * @param f Universal set, all values
    */
-  public RealSeqContent(String name, double[] v) {
+  public RealSeqContent(String name, double[] v, boolean f) {
     super(FieldType.SET_OF_REAL, name);
     this.value = new double[v.length];
     for (int i=0; i<v.length; i++) this.value[i] = v[i];
+    this.isAll = f;
   }
 
   /**
    * @param def
+   * @param v the set of values
+   * @param f Universal set, all values
    */
-  public RealSeqContent(FieldDef def, double[] v) {
+  public RealSeqContent(FieldDef def, double[] v, boolean f) {
     super(def);
     if (def.getFieldType() != FieldType.SET_OF_REAL) {
       throw new IllegalArgumentException("Incorrect type for field definition");
     }
     this.value = new double[v.length];
     for (int i=0; i<v.length; i++) this.value[i] = v[i];
+    this.isAll = f;
   }
   /**
    * The content value in raw form
@@ -47,6 +54,11 @@ public class RealSeqContent extends Content implements Serializable {
     for (int i=0; i<this.value.length; i++) rslt[i] = this.value[i];
     return rslt;
   }
+  /**
+   * Is this the universe of values
+   * @return
+   */
+  public boolean isAllValues() { return isAll;  }
 
   /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#numFields()

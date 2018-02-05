@@ -9,6 +9,7 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class BinarySeqContent extends Content implements Serializable {
   private static final long serialVersionUID = 1L;
+  private boolean isAll;
   private byte[][] value;
 
   /**
@@ -16,26 +17,30 @@ public class BinarySeqContent extends Content implements Serializable {
    */
   protected BinarySeqContent() {
     this.value = new byte[0][];
+    this.isAll = false;
   }
 
   /**
    * @param name field name
    * @param v content value
+   * @param f Universal set, all values
    */
-  public BinarySeqContent(FieldType typ, String name, byte[][] v) {
+  public BinarySeqContent(FieldType typ, String name, byte[][] v, boolean f) {
     super(FieldType.SET_OF_BINARY, name);
     this.value = new byte[v.length][];
     for (int i=0; i<v.length; i++) {
       this.value[i] = new byte[v[i].length];
       for (int j=0; j<v[i].length; j++) this.value[i][j] = v[i][j];
     }
+    this.isAll = f;
   }
 
   /**
    * @param def
    * @param v content value
+   * @param f Universal set, all values
    */
-  public BinarySeqContent(FieldDef def, byte[][] v) {
+  public BinarySeqContent(FieldDef def, byte[][] v, boolean f) {
     super(def);
     if (def.getFieldType() != FieldType.SET_OF_BINARY) {
       throw new IllegalArgumentException("Wrong field type in definition");
@@ -45,6 +50,7 @@ public class BinarySeqContent extends Content implements Serializable {
       this.value[i] = new byte[v[i].length];
       for (int j=0; j<v[i].length; j++) this.value[i][j] = v[i][j];
     }
+    this.isAll = f;
   }
   /**
    * The raw data content.
@@ -60,6 +66,11 @@ public class BinarySeqContent extends Content implements Serializable {
     }
     return rslt;
   }
+  /**
+   * Is this the universe of values?
+   * @return
+   */
+  public boolean isAllValues() { return isAll; }
 
   /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#numFields()

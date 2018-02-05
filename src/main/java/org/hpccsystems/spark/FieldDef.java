@@ -55,7 +55,7 @@ public class FieldDef implements Serializable {
       this.typeName = typeDef.description();
       this.defs = typeDef.getStructDef();
       this.srcType = typeDef.getSourceType();
-      this.fields = 1;
+      this.fields = this.defs.length;
       this.len = typeDef.getLength();
       this.childLen = typeDef.childLen();
       this.fixedLength = typeDef.isFixedLength();
@@ -130,16 +130,18 @@ public class FieldDef implements Serializable {
       sb.append(":");
       sb.append(this.childLen);
     }
+    sb.append(" ");
+    sb.append(this.srcType.toString());
     sb.append(", fieldType=");
     if (this.fieldType.isComposite()) {
       sb.append("{");
       sb.append(this.fields);
-      sb.append("}[");
+      sb.append("}{");
       for (int i=0; i<this.defs.length; i++) {
         if (i>0) sb.append("; ");
         sb.append(this.defs[i].toString());
       }
-      sb.append("]");
+      sb.append("}");
     } else sb.append(this.typeName);
     sb.append("]");
     return sb.toString();

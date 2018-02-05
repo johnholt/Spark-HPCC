@@ -51,7 +51,7 @@ public class TypeDef implements Serializable {
   /**
    * Private constructor for dummy child object and serialization support.
    */
-  private TypeDef() {
+  protected TypeDef() {
     this.typeName = "none";
     this.len = 0;
     this.src = HpccSrcType.UNKNOWN;
@@ -159,7 +159,7 @@ public class TypeDef implements Serializable {
         break;
       case type_table:
       case type_vtable:
-        this.type = FieldType.SET_OF_RECORD;
+        this.type = FieldType.SEQ_OF_RECORD;
         break;
       default:
         this.fixedLength = false;

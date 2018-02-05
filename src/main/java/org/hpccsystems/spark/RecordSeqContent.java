@@ -21,7 +21,7 @@ public class RecordSeqContent extends Content implements Serializable {
    * @param v the array of RecordContent objects
    */
   public RecordSeqContent(String name, RecordContent[] v) {
-    super(FieldType.SET_OF_RECORD, name);
+    super(FieldType.SEQ_OF_RECORD, name);
     this.value = new RecordContent[v.length];
     for (int i=0; i<v.length; i++) this.value[i] = v[i];
   }
@@ -32,7 +32,7 @@ public class RecordSeqContent extends Content implements Serializable {
    */
   public RecordSeqContent(FieldDef def, RecordContent[] v) {
     super(def);
-    if (def.getFieldType() != FieldType.SET_OF_RECORD) {
+    if (def.getFieldType() != FieldType.SEQ_OF_RECORD) {
       throw new IllegalArgumentException("Field Def has the wrong data type");
     }
     this.value = new RecordContent[v.length];

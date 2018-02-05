@@ -8,35 +8,41 @@ import java.io.Serializable;
  */
 public class IntegerSeqContent extends Content implements Serializable {
   private static final long serialVersionUID = 1L;
+  private boolean isAll;
   private long[] value;
   /**
    * Empty constructor for serialization support
    */
   public IntegerSeqContent() {
     this.value = new long[0];
+    this.isAll = false;
   }
 
   /**
    * @param name
    * @param v content values
+   * @param f Universal set, all values
    */
-  public IntegerSeqContent(String name, long[] v) {
+  public IntegerSeqContent(String name, long[] v, boolean f) {
     super(FieldType.SET_OF_INTEGER, name);
     this.value = new long[v.length];
     for (int i=0; i<v.length; i++) this.value[i] = v[i];
+    this.isAll = f;
   }
 
   /**
    * @param def
    * @param v content values
+   * @param f Universal set, all values
    */
-  public IntegerSeqContent(FieldDef def, long[] v) {
+  public IntegerSeqContent(FieldDef def, long[] v, boolean f) {
     super(def);
     if (def.getFieldType() != FieldType.SET_OF_INTEGER) {
       throw new IllegalArgumentException("Incorrect field type");
     }
     this.value = new long[v.length];
     for (int i=0; i<v.length; i++) this.value[i] = v[i];
+    this.isAll = f;
   }
   /**
    * Content in raw form as a set of long integers
@@ -47,6 +53,11 @@ public class IntegerSeqContent extends Content implements Serializable {
     for (int i=0; i<this.value.length; i++) rslt[i] = this.value[i];
     return rslt;
   }
+  /**
+   * Is this the universe of values
+   * @return
+   */
+  public boolean isAllValues() { return this.isAll; }
 
   /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#numFields()

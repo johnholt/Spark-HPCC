@@ -10,11 +10,6 @@ import scala.collection.JavaConverters;
 import org.hpccsystems.spark.HpccFile;
 import java.util.Arrays;
 //
-import org.hpccsystems.ws.client.HPCCWsDFUClient;
-import org.hpccsystems.ws.client.utils.Connection;
-import org.hpccsystems.ws.client.platform.DFUFileDetailInfo;
-import org.hpccsystems.ws.client.platform.DFUFilePartsOnClusterInfo;
-import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
 
 
 /**
@@ -26,8 +21,8 @@ public class RDDTest {
   public static void main(String[] args) throws Exception {
     String hpcc_ip = "10.239.40.2";
     String hpcc_port = "8010";
-    //String hpcc_file = "~thor::testdata::iris";
-    String hpcc_file = "~THOR::JDH::JAPI_FIXED";
+    String hpcc_file = "~thor::testdata::iris";
+    //String hpcc_file = "~THOR::JDH::JAPI_FIXED";
     String protocol = "http";
     //
     SparkConf conf = new SparkConf().setAppName("Spark HPCC test");

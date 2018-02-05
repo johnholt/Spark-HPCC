@@ -24,7 +24,7 @@ public enum FieldType implements Serializable {
   SET_OF_STRING(false, "Set of strings", false),
   SET_OF_BOOLEAN(false, "Set of Booleans", false),
   SET_OF_BINARY(false, "Set of Binary strings", false),
-  SET_OF_RECORD(false, "Set of records", true),
+  SEQ_OF_RECORD(false, "Seq of records", true),
   SET_OF_MISSING(false, "Set of unknown", false);
 
   static final long serialVersionUID = 1L;
