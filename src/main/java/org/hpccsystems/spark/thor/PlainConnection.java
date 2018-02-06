@@ -1,11 +1,11 @@
-package org.hpccsystems.spark.data;
+package org.hpccsystems.spark.thor;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 
 import org.hpccsystems.spark.FilePart;
-import org.hpccsystems.spark.RecordDef;
 import org.hpccsystems.spark.HpccFileException;
+import org.hpccsystems.spark.RecordDef;
 
 /**
  * @author holtjd

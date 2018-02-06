@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import java.util.Iterator;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
  * Test the access for information on a distributed file on a THOR cluster.
  * @author John Holt
@@ -35,8 +37,8 @@ public class HpccFileTest {
       System.out.println(field.toString());
     }
     System.out.println("Reading block");
-    org.hpccsystems.spark.data.PlainConnection pc
-          = new org.hpccsystems.spark.data.PlainConnection(parts[1], rd);
+    org.hpccsystems.spark.thor.PlainConnection pc
+          = new org.hpccsystems.spark.thor.PlainConnection(parts[1], rd);
     System.out.print("Transaction : ");
     System.out.println(pc.getTrans());
     System.out.println(pc.getIP());

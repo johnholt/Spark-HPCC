@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
  * The field contents with the name and type of the data.  This is an
  * abstract type.  The implementation types are IntegerContent, RealContent,

@@ -12,6 +12,7 @@ import org.apache.spark.Partition;
 import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
 
 /**
+ * A file part of an HPCC file.  This is the Spark partition for the RDD.
  * @author holtjd
  *
  */

@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
  * A field content item with String as the native type.
  * @author holtjd

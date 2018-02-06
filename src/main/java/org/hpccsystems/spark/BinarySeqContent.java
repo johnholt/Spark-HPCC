@@ -3,9 +3,11 @@ package org.hpccsystems.spark;
 import java.io.Serializable;
 import javax.xml.bind.DatatypeConverter;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
  * @author holtjd
- * A sequence of binary objects.
+ * A sequence of binary objects, like SET OF DATA in ECL.
  */
 public class BinarySeqContent extends Content implements Serializable {
   private static final long serialVersionUID = 1L;

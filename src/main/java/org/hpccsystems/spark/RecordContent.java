@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
  * @author holtjd
  * The row content, an group of Content objects.

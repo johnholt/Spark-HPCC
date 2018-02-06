@@ -3,7 +3,10 @@ package org.hpccsystems.spark;
 import java.io.Serializable;
 import javax.xml.bind.DatatypeConverter;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
+ * Binary field content.  Either a DATA field or a DATAn fixed length field.
  * @author holtjd
  *
  */

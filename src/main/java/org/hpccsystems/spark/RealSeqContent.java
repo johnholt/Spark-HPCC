@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
  * @author holtjd
  * A set or array of real values.

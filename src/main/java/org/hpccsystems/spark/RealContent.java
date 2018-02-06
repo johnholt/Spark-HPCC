@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 public class RealContent extends Content implements Serializable {
   private final static long serialVersionUID = 1L;
   private double value;

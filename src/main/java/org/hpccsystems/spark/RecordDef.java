@@ -4,9 +4,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.hpccsystems.spark.data.DefToken;
-import org.hpccsystems.spark.data.HpccSrcType;
-import org.hpccsystems.spark.data.UnusableDataDefinitionException;
+
+import org.hpccsystems.spark.thor.DefToken;
+import org.hpccsystems.spark.thor.FieldDef;
+import org.hpccsystems.spark.thor.HpccSrcType;
+import org.hpccsystems.spark.thor.TypeDef;
+import org.hpccsystems.spark.thor.UnusableDataDefinitionException;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
 
@@ -35,7 +39,7 @@ public class RecordDef implements Serializable {
    * Empty constructor for serialization
    */
   protected RecordDef() {
-    this.root = new FieldDef();
+    this.root = null;
     this.output_def = "";
     this.input_def = "";
   }
@@ -47,7 +51,7 @@ public class RecordDef implements Serializable {
    * @param root the definition parsed into FieldDef objects.  The input
    * is the root definition for the record.
    */
-  protected RecordDef(String def, FieldDef root) {
+  public RecordDef(String def, FieldDef root) {
     this.input_def = def;
     this.output_def = def;  // default output is all content
     this.root = root;

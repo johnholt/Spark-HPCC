@@ -8,6 +8,7 @@ import org.apache.spark.SparkContext;
 import scala.collection.Seq;
 import scala.collection.JavaConverters;
 import org.hpccsystems.spark.HpccFile;
+
 import java.util.Arrays;
 //
 

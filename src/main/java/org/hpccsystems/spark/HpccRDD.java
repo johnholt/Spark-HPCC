@@ -17,6 +17,7 @@ import scala.reflect.ClassTag$;
 import scala.collection.JavaConverters;
 
 /**
+ * The implementation of the RDD<Record> (an RDD of type Record data) class.
  * @author holtjd
  *
  */

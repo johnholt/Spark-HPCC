@@ -1,4 +1,4 @@
-package org.hpccsystems.spark.data;
+package org.hpccsystems.spark.thor;
 
 import java.util.NoSuchElementException;
 import java.util.Iterator;
@@ -6,12 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.nio.charset.Charset;
 import org.hpccsystems.spark.HpccFileException;
-import org.hpccsystems.spark.FieldDef;
 import org.hpccsystems.spark.Record;
-import org.hpccsystems.spark.RecordDef;
-import org.hpccsystems.spark.FilePart;
 import org.hpccsystems.spark.Content;
+import org.hpccsystems.spark.FilePart;
 import org.hpccsystems.spark.RecordContent;
+import org.hpccsystems.spark.RecordDef;
 import org.hpccsystems.spark.IntegerContent;
 import org.hpccsystems.spark.RealContent;
 import org.hpccsystems.spark.BinaryContent;
@@ -60,7 +59,7 @@ public class BinaryRecordReader implements IRecordReader {
   }
 
   /* (non-Javadoc)
-   * @see org.hpccsystems.spark.data.IRecordReader#hasNext()
+   * @see org.hpccsystems.spark.thor.IRecordReader#hasNext()
    */
   public boolean hasNext() throws HpccFileException {
     if (!this.active) {
@@ -77,7 +76,7 @@ public class BinaryRecordReader implements IRecordReader {
   }
 
   /* (non-Javadoc)
-   * @see org.hpccsystems.spark.data.IRecordReader#getNext()
+   * @see org.hpccsystems.spark.thor.IRecordReader#getNext()
    */
   public Record getNext() throws HpccFileException {
     if (!this.hasNext()) {

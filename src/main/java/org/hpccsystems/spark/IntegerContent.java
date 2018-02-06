@@ -2,6 +2,8 @@ package org.hpccsystems.spark;
 
 import static org.junit.Assert.assertNotNull;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 public class IntegerContent extends Content {
   private final static long serialVersionUID = 1L;
   private long value;

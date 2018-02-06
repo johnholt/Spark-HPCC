@@ -1,6 +1,7 @@
 package org.hpccsystems.spark;
 
-import org.hpccsystems.spark.data.HpccSrcType;
+import org.hpccsystems.spark.thor.FieldDef;
+import org.hpccsystems.spark.thor.HpccSrcType;
 
 public class FieldDefTest {
 

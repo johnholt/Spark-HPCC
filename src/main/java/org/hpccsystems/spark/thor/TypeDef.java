@@ -1,12 +1,13 @@
-package org.hpccsystems.spark;
+package org.hpccsystems.spark.thor;
 
 import java.util.HashMap;
 import java.util.Iterator;
+
+import org.hpccsystems.spark.FieldType;
+
 import java.util.ArrayList;
 import java.io.Serializable;
-import org.hpccsystems.spark.data.DefToken;
-import org.hpccsystems.spark.data.UnusableDataDefinitionException;
-import org.hpccsystems.spark.data.HpccSrcType;
+
 import com.fasterxml.jackson.core.JsonToken;
 
 public class TypeDef implements Serializable {

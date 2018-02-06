@@ -2,7 +2,10 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 
+import org.hpccsystems.spark.thor.FieldDef;
+
 /**
+ * Contains a Boolean value.
  * @author holtjd
  *
  */

@@ -1,6 +1,6 @@
 package org.hpccsystems.spark;
 
-import org.hpccsystems.spark.data.UnusableDataDefinitionException;
+import org.hpccsystems.spark.thor.UnusableDataDefinitionException;
 import org.hpccsystems.ws.client.HPCCWsDFUClient;
 import org.hpccsystems.ws.client.platform.DFUFileDetailInfo;
 import org.hpccsystems.ws.client.platform.DFUFilePartsOnClusterInfo;

@@ -1,7 +1,9 @@
 package org.hpccsystems.spark;
 
 import java.util.Iterator;
-import org.hpccsystems.spark.data.BinaryRecordReader;
+
+import org.hpccsystems.spark.thor.BinaryRecordReader;
+import org.hpccsystems.spark.thor.FieldDef;
 
 public class RecordTest {
 

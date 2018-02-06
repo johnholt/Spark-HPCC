@@ -1,4 +1,4 @@
-package org.hpccsystems.spark.data;
+package org.hpccsystems.spark.thor;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;

@@ -1,9 +1,6 @@
-package org.hpccsystems.spark;
+package org.hpccsystems.spark.thor;
 
 import org.hpccsystems.spark.FieldType;
-import org.hpccsystems.spark.data.DefToken;
-import org.hpccsystems.spark.data.UnusableDataDefinitionException;
-import org.hpccsystems.spark.data.HpccSrcType;
 
 import com.fasterxml.jackson.core.JsonToken;
 

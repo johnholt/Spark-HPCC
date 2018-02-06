@@ -1,12 +1,12 @@
 package org.hpccsystems.spark;
 
-import org.hpccsystems.spark.data.BinaryRecordReader;
 import org.hpccsystems.spark.HpccFileException;
+import org.hpccsystems.spark.thor.BinaryRecordReader;
 
 
 /**
  * @author holtjd
- * Remote file reader used by the HpccRDD
+ * Remote file reader used by the HpccRDD.
  */
 public class HpccRemoteFileReader {
   private RecordDef def;

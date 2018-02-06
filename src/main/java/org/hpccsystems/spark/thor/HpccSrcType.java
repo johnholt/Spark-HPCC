@@ -1,4 +1,4 @@
-package org.hpccsystems.spark.data;
+package org.hpccsystems.spark.thor;
 
 /**
  * @author holtjd
