@@ -326,38 +326,6 @@ public class PlainConnection {
     } catch (IOException e) {
       throw new HpccFileException("Failed on remote read read retry", e);
     }
-    len = 0;
-    boolean hi_flag = false;  // is a response without this set always an error?
-    try {
-      len = dis.readInt();
-      if (len < 0) {
-        hi_flag = true;
-        len &= 0x7FFFFFFF;
-      }
-      if (len==0) return 0;
-      byte flag = dis.readByte();
-      if (flag==hyphen[0]) {
-        if (len<5) throw new HpccFileException("Failed, no message");
-        int msgLen = dis.readInt();
-        byte[] msg = new byte[msgLen];
-        this.dis.read(msg);
-        String message = new String(msg, hpccSet);
-        throw new HpccFileException("Failed with " + message);
-      }
-      if (flag != uc_J[0]) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Invalid response of ");
-        sb.append(String.format("%02X ", flag));
-        sb.append("received from THOR node ");
-        sb.append(this.getIP());
-        sb.append(" and return length hi-bit was ");
-        sb.append(hi_flag);
-        throw new HpccFileException(sb.toString());
-      }
-      len--;  // account for flag byte read
-    } catch (IOException e) {
-      throw new HpccFileException("Error during read block", e);
-    }
-    return len;
+    return readReplyLen();
   }
 }

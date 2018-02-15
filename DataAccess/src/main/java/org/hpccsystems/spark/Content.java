@@ -106,4 +106,23 @@ public abstract class Content implements Serializable {
    * @return the array of String values
    */
   public abstract String[] asSetOfString();
+  /**
+   * The value of the field as a double.  Musty be a Real or Integer content item.
+   * @return the value;
+   * @throws UnsupportedOperationException when the Content is neither Integer nor Real
+   */
+  public double getRealValue() throws UnsupportedOperationException {
+    double rslt = 0;
+    if (this instanceof IntegerContent ) {
+      rslt = (double) ((IntegerContent)this).asInt();
+    } else if (this instanceof RealContent) {
+      rslt = ((RealContent)this).asReal();
+    } else {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Cannot make a real from ");
+      sb.append(this.getTypeName());
+      throw new UnsupportedOperationException(sb.toString());
+    }
+    return rslt;
+  }
 }

@@ -90,6 +90,9 @@ public class HpccFile {
         this.parts = FilePart.makeFileParts(fd.getNumParts(),
             fd.getDir(), fd.getFilename(), fd.getPathMask(), dfu_parts);
         String record_def_json = fd.getJsonInfo();
+        if (record_def_json==null) {
+          throw new UnusableDataDefinitionException("Definiiton returned was null");
+        }
         this.recordDefinition = RecordDef.parseJsonDef(record_def_json);
       } catch (UnusableDataDefinitionException e) {
         this.badDef = true;

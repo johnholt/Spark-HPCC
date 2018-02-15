@@ -1,5 +1,8 @@
 package org.hpccsystems.spark;
 
+import org.apache.spark.mllib.regression.LabeledPoint;
+import org.apache.spark.mllib.linalg.Vectors;
+import org.apache.spark.mllib.linalg.Vector;
 
 /**
  * A data record from the HPCC system.  A collection of fields, accessed by
@@ -36,6 +39,44 @@ public class Record implements java.io.Serializable {
   protected Record() {
     this.fileName = "";
     this.content = new java.util.HashMap<String, Content>(0);
+  }
+  /**
+   * Construct a labeled point record from an HPCC record.
+   * @param labelName name of the content field to use as a label
+   * @param dimNames names of the fields to use as the vector dimensions,
+   * in the order specified.
+   * @return a lebeled point record
+   * @throws java.lang.IllegalArgumentException when a field name does not exist
+   */
+  public LabeledPoint asLabeledPoint(String labelName, String[] dimNames)
+        throws IllegalArgumentException {
+    if (!content.containsKey(labelName)) {
+      throw new IllegalArgumentException(labelName + " not a record field.");
+    }
+    Content cv = content.get(labelName);
+    double label = cv.getRealValue();
+    Vector features = this.asMlLibVector(dimNames);
+    LabeledPoint rslt = new LabeledPoint(label, features);
+    return rslt;
+  }
+  /**
+   * Construct an MLLib dense vector from the HPCC record.
+   * @param dimNames the names of the fields to use as the dimensions
+   * @return a dense vector
+   * @throws java.lang.IllegalArgumentException when the field name does not exist
+   */
+  public Vector asMlLibVector(String[] dimNames)
+        throws java.util.NoSuchElementException {
+    double[] features = new double[dimNames.length];
+    for (int i=0; i<dimNames.length; i++) {
+      if (!content.containsKey(dimNames[i])) {
+        throw new IllegalArgumentException(dimNames[i] + " not a record field");
+      }
+      Content cv = content.get(dimNames[i]);
+      features[i] = cv.getRealValue();
+    }
+    Vector rslt = Vectors.dense(features);
+    return rslt;
   }
   /**
    * Get a field by the name.

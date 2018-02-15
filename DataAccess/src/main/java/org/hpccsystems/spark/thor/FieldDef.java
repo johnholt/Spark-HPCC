@@ -68,6 +68,12 @@ public class FieldDef implements Serializable {
    */
   public FieldDef(String fieldName, FieldType fieldType, String typeName, long len,
       long childLen, boolean isFixedLength, HpccSrcType styp, FieldDef[] defs) {
+    if (len>Integer.MAX_VALUE || childLen>Integer.MAX_VALUE) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Field length values too large for ");
+      sb.append(fieldName);
+      throw new IllegalArgumentException(sb.toString());
+    }
     this.fieldName = fieldName;
     this.fieldType = fieldType;
     this.typeName = typeName;
@@ -75,6 +81,8 @@ public class FieldDef implements Serializable {
     this.srcType = styp;
     this.fields = defs.length;
     this.fixedLength = isFixedLength;
+    this.childLen = (int) childLen;
+    this.len = (int) len;
   }
   /**
    * the name of the field

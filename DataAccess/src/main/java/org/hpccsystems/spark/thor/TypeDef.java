@@ -62,6 +62,7 @@ public class TypeDef implements Serializable {
     this.childSrc = HpccSrcType.UNKNOWN;
     this.childType = FieldType.MISSING;
     this.unsignedFlag = false;
+    this.fixedLength = false;
   }
   /**
    * Normal constructor to use when this definition describes a structure

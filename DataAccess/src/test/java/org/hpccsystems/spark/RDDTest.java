@@ -29,10 +29,9 @@ public class RDDTest {
     SparkConf conf = new SparkConf().setAppName("Spark HPCC test");
     conf.setMaster("local[2]");
     conf.setSparkHome("/Users/holtjd/WorkArea/spark-2.2.0-bin-hadoop2.7");
-    String japi_jar = "/Users/holtjd/Repositories/HPCC-JAPIs/wsclient/target"
-        + "/wsclient-1.3.0-SNAPSHOT-jar-with-dependencies.jar";
+    String japi_jar = "/Users/holtjd/WorkArea/wsclient-2.0.0-SNAPSHOT-jar-with-dependencies.jar";
     String this_jar = "/Users/holtjd/Repositories/Spark-HPCC/target/spark-hpcc-t0.jar";
-    java.util.List<String> jar_list = Arrays.asList(this_jar);
+    java.util.List<String> jar_list = Arrays.asList(this_jar, japi_jar);
     Seq<String> jar_seq = JavaConverters.iterableAsScalaIterableConverter(jar_list).asScala().toSeq();;
     conf.setJars(jar_seq);
     System.out.println("Spark configuration set");
@@ -53,6 +52,22 @@ public class RDDTest {
       Record rec = rec_iter.next();
       System.out.println(rec.toString());
     }
+    System.out.println("Completed output of Record data, now trying LabeledPoint");
+    String[] names = {"petal_length","petal_width", "sepal_length", "sepal_width"};
+    org.apache.spark.rdd.RDD<org.apache.spark.mllib.regression.LabeledPoint>
+        lpRDD = myRDD.makeMLLibLabeledPoint("class", names);
+//    scala.collection.Iterator<org.apache.spark.mllib.regression.LabeledPoint>
+//        lp_iter = lpRDD.toLocalIterator();
+//    while (lp_iter.hasNext()) {
+//      org.apache.spark.mllib.regression.LabeledPoint lp = lp_iter.next();
+//      System.out.println(lp.toString());
+//    }
+    org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS lr
+     = new org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS();
+    lr.setNumClasses(3);
+    org.apache.spark.mllib.classification.LogisticRegressionModel m
+      = lr.run(lpRDD);
+    System.out.println(m.toString());
     System.out.println("End of run");
   }
 }

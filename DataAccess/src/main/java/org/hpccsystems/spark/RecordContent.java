@@ -57,7 +57,26 @@ public class RecordContent extends Content implements Serializable{
     for (int i=0; i<this.items.length; i++) rslt[i] = this.items[i];
     return rslt;
   }
-
+  /**
+   * Get the content item at position ndx in the array
+   * @param ndx
+   * @return
+   */
+  public Content fieldAt(int ndx) {
+    return this.items[ndx];
+  }
+  public java.util.Iterator<Content> asIterator() {
+    Content[] t = this.items;
+    return new java.util.Iterator<Content>() {
+      private final Content[] cp = t;
+      private int pos = 0;
+      public boolean hasNext() { return pos<cp.length; }
+      public Content next() throws java.util.NoSuchElementException {
+        if (pos >= cp.length) throw new java.util.NoSuchElementException();
+        return cp[pos++];
+      }
+    };
+  }
   /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#numFields()
    */

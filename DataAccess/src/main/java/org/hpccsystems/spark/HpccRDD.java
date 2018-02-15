@@ -7,14 +7,19 @@ import org.apache.spark.Partition;
 import org.apache.spark.SparkContext;
 import org.apache.spark.TaskContext;
 import org.apache.spark.rdd.RDD;
+import org.apache.spark.mllib.regression.LabeledPoint;
+import org.apache.spark.mllib.linalg.Vector;
 import org.hpccsystems.spark.HpccRemoteFileReader;
 import org.hpccsystems.spark.HpccFileException;
 import org.apache.spark.InterruptibleIterator;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
 import scala.collection.Seq;
 import scala.collection.mutable.ArraySeq;
 import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 import scala.collection.JavaConverters;
+
 
 /**
  * The implementation of the RDD<Record> (an RDD of type Record data) class.
@@ -25,7 +30,7 @@ public class HpccRDD extends RDD<Record> implements Serializable {
   private static final long serialVersionUID = 1L;
   private static final ClassTag<Record> CT_RECORD
                           = ClassTag$.MODULE$.apply(Record.class);
-  private static Seq empty
+  private static Seq<Dependency<RDD<Record>>> empty
           = new ArraySeq<Dependency<RDD<Record>>>(0);
   //
   private FilePart[] parts;
@@ -35,12 +40,43 @@ public class HpccRDD extends RDD<Record> implements Serializable {
    * @param
    */
   public HpccRDD(SparkContext _sc, FilePart[] parts, RecordDef def) {
-    super(_sc, empty, CT_RECORD);
+    super(_sc, (Seq)empty, CT_RECORD);
     this.parts = new FilePart[parts.length];
     for (int i=0; i<parts.length; i++) {
       this.parts[i] = parts[i];
     }
     this.def = def;
+  }
+  /**
+   * Transform to an RDD of labeled points for MLLib supervised learning.
+   * @param labelName the field name of the label datg
+   * @param dimNames the field names for the dimensions
+   * @return
+   */
+  public RDD<LabeledPoint> makeMLLibLabeledPoint(String labelName, String[] dimNames) {
+    JavaRDD<Record> jRDD = new JavaRDD<Record>(this, CT_RECORD);
+    Function<Record, LabeledPoint> map_f = new Function<Record, LabeledPoint>() {
+      static private final long serialVersionUID = 1L;
+      public LabeledPoint call(Record r) {
+        return r.asLabeledPoint(labelName, dimNames);
+      }
+    };
+    return jRDD.map(map_f).rdd();
+  }
+  /**
+   * Transform to mllib.linalg.Vectors for ML Lib machine learning.
+   * @param dimNames the field names for the dimensions
+   * @return
+   */
+  public RDD<Vector> makeMLLibVector(String[] dimNames) {
+    JavaRDD<Record> jRDD = new JavaRDD<Record>(this, CT_RECORD);
+    Function<Record, Vector> map_f = new Function<Record, Vector>() {
+      static private final long serialVersionUID = 1L;
+      public Vector call(Record r) {
+        return r.asMlLibVector(dimNames);
+      }
+    };
+    return jRDD.map(map_f).rdd();
   }
 
   /* (non-Javadoc)

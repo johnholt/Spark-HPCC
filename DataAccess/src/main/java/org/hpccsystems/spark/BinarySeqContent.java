@@ -23,6 +23,7 @@ public class BinarySeqContent extends Content implements Serializable {
   }
 
   /**
+   * @param typ field type
    * @param name field name
    * @param v content value
    * @param f Universal set, all values
@@ -59,7 +60,7 @@ public class BinarySeqContent extends Content implements Serializable {
    * @return
    */
   public byte[][] asSetOfBinary() {
-    byte[][] rslt = new byte[this.value.length][0];
+    byte[][] rslt = new byte[this.value.length][];
     for (int i=0; i<this.value.length; i++) {
       rslt[i] = new byte[this.value[i].length];
       for (int j=0; j<this.value[i].length; j++) {
