@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.Arrays;
 import org.apache.spark.Partition;
 import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
+import org.hpccsystems.spark.thor.ClusterRemapper;
 
 /**
  * A file part of an HPCC file.  This is the Spark partition for the RDD.
@@ -24,10 +25,26 @@ public class FilePart implements Partition, Serializable {
   private String file_name;
   private int this_part;
   private int num_parts;
+  private int clearPort;
+  private int sslPort;
   private long part_size;
 
+  /**
+   * Construct the file part, used by makeParts
+   * @param ip0 primary ip
+   * @param ipx secondary ip
+   * @param dir directory for file
+   * @param name file name
+   * @param this_part part number
+   * @param num_parts number of parts
+   * @param part_size size of this part
+   * @param mask mask for constructing full file name
+   * @param clear port number of clear communications
+   * @param ssl port number of ssl communications
+   */
   private FilePart(String ip0, String ipx, String dir, String name,
-      int this_part, int num_parts, long part_size, String mask) {
+      int this_part, int num_parts, long part_size, String mask,
+      int clear, int ssl) {
     String p_str = Integer.toString(this_part);
     String f_str = dir + "/" + mask;
     this.primary_ip = ip0;
@@ -36,16 +53,51 @@ public class FilePart implements Partition, Serializable {
     this.this_part = this_part;
     this.num_parts = num_parts;
     this.part_size = part_size;
+    this.clearPort = clear;
+    this.sslPort = ssl;
   }
-  private FilePart() {}
+  /**
+   * Empty constructor used by serialization
+   */
+  protected FilePart() {}
 
+  /**
+   * Primary IP address
+   * @return ip address
+   */
   public String getPrimaryIP() { return this.primary_ip; }
+  /**
+   * Secondary IP for a copy.
+   * @return ip address
+   */
   public String getSecondaryIP() { return this.secondary_ip; }
+  /**
+   * Port used for communication in clear.
+   * @return port number
+   */
+  public int getClearPort() { return clearPort; }
+  /**
+   * Port used for SSL communication
+   * @return port
+   */
+  public int getSslPort() { return sslPort; }
+  /**
+   * File name
+   * @return name
+   */
   public String getFilename() {
     return this.file_name;
   }
   public int getThisPart() { return this.this_part; }
+  /**
+   * Number of parts for this file
+   * @return number of parts
+   */
   public int getNumParts() { return this.num_parts; }
+  /**
+   * Reported size of the file part on disk.
+   * @return size
+   */
   public long getPartSize() { return this.part_size; }
 
   /* (non-Javadoc)
@@ -74,10 +126,12 @@ public class FilePart implements Partition, Serializable {
    * @param name the base name of the file
    * @param mask the mask for the file name file part suffix
    * @param parts an array of JAPI file part info objects
+   * @param cr an address re-mapper for THOR clusters on virtual networks
    * @return an array of partitions for Spark
    */
   public static FilePart[] makeFileParts(int num_parts, String dir,
-      String name, String mask, DFUFilePartInfo[] parts) {
+      String name, String mask, DFUFilePartInfo[] parts,
+      ClusterRemapper cr) throws HpccFileException {
     FilePart[] rslt = new FilePart[num_parts];
     Arrays.sort(parts, FilePartInfoComparator);
     int copies = parts.length / num_parts;
@@ -92,12 +146,17 @@ public class FilePart implements Partition, Serializable {
       } catch (ParseException e) {
         partSize = 0;
       }
-      rslt[i] = new FilePart(primary.getIp(), secondary.getIp(),
-          dir, name, i+1, num_parts, partSize, mask);
+      rslt[i] = new FilePart(cr.revisePrimaryIP(primary),
+          cr.reviseSecondaryIP(secondary),
+          dir, name, i+1, num_parts, partSize, mask,
+          cr.reviseClearPort(primary), cr.reviseSslPort(primary));
     }
     return rslt;
   }
-  public static Comparator<DFUFilePartInfo> FilePartInfoComparator
+  /**
+   * Comparator function to order file part information.
+   */
+  private static Comparator<DFUFilePartInfo> FilePartInfoComparator
                 = new Comparator<DFUFilePartInfo>() {
     public int compare(DFUFilePartInfo fpi1, DFUFilePartInfo fpi2) {
       if (fpi1.getId() < fpi2.getId()) return -1;

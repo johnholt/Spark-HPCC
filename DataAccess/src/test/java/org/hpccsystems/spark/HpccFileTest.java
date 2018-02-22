@@ -3,6 +3,7 @@ package org.hpccsystems.spark;
 import java.util.Iterator;
 
 import org.hpccsystems.spark.thor.FieldDef;
+import org.hpccsystems.spark.thor.RemapInfo;
 
 /**
  * Test the access for information on a distributed file on a THOR cluster.
@@ -13,13 +14,15 @@ public class HpccFileTest {
 
   public static void main(String[] args) throws Exception {
     //String MyVM = "127.0.0.1";
-    String ML_Dev = "10.239.40.2";
+    //String ML_Dev = "10.239.40.2";
+    String ML_Dev = "10.240.37.76";
     String testName = "~THOR::JDH::JAPI_TEST1a";
     //String testName = "~THOR::JDH::JAPI_TEST2";
     //String testName = "~THOR::JDH::JAPI_FIXED";
     //String testName = "~THOR::TESTDATA::IRIS";
     //String testName = "~THOR::JDH::JAPI_FIXED_MULTI";
-    HpccFile hpcc = new HpccFile(testName, "http", ML_Dev, "8010", "", "");
+    RemapInfo ri = new RemapInfo(20, "10.240.37.108");
+    HpccFile hpcc = new HpccFile(testName, "http", ML_Dev, "8010", "", "", ri);
     System.out.println("Getting file parts");
     FilePart[] parts = hpcc.getFileParts();
     for (int i=0; i<parts.length; i++) {
@@ -28,6 +31,8 @@ public class HpccFileTest {
               + parts[i].getSecondaryIP() + ": "
               + parts[i].getThisPart());
     }
+    System.out.println("Getting JSON definition");
+    System.out.println(hpcc.getRecordDefinition().getJsonInputDef());
     System.out.println("Getting record definition");
     RecordDef rd = hpcc.getRecordDefinition();
     FieldDef root_def = rd.getRootDef();

@@ -20,7 +20,6 @@ public class PlainConnection {
   private int handle;
   private FilePart filePart;
   private RecordDef recDef;
-  private int port;
   private java.io.DataInputStream dis;
   private java.io.DataOutputStream dos;
   private java.net.Socket sock;
@@ -34,7 +33,6 @@ public class PlainConnection {
    * @param rd the JSON definition for the read input and output
    */
   public PlainConnection(FilePart fp, RecordDef rd) {
-    this.port = 7100;
     this.recDef = rd;
     this.filePart = fp;
     this.active = false;
@@ -57,7 +55,7 @@ public class PlainConnection {
    * The port number for the remote read service
    * @return port number
    */
-  public int getPort() { return this.port; }
+  public int getPort() { return this.filePart.getClearPort(); }
   /**
    * The read transaction in JSON format
    * @return read transaction
@@ -179,7 +177,7 @@ public class PlainConnection {
     this.handle = 0;
     this.cursorBin = new byte[0];
     try {
-      sock = new java.net.Socket(this.getIP(), this.port);
+      sock = new java.net.Socket(this.getIP(), this.filePart.getClearPort());
     } catch (java.net.UnknownHostException e) {
       throw new HpccFileException("Bad file part addr "+this.getIP(), e);
     } catch (java.io.IOException e) {

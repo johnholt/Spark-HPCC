@@ -8,7 +8,6 @@ import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 
-
 object Iris_LR {
   def main(args: Array[String]) {
     val hpcc_protocol = "http"

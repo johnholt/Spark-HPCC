@@ -1,6 +1,8 @@
 package org.hpccsystems.spark;
 
 import org.hpccsystems.spark.thor.UnusableDataDefinitionException;
+import org.hpccsystems.spark.thor.ClusterRemapper;
+import org.hpccsystems.spark.thor.RemapInfo;
 import org.hpccsystems.ws.client.HPCCWsDFUClient;
 import org.hpccsystems.ws.client.platform.DFUFileDetailInfo;
 import org.hpccsystems.ws.client.platform.DFUFilePartsOnClusterInfo;
@@ -25,9 +27,10 @@ public class HpccFile {
   private String fileName;
   private FilePart[] parts;
   private RecordDef recordDefinition;
+  private RemapInfo ri;
   /**
    * Lazy constructor for the HpccFile.  Captures the information
-   * but does not actually reach out the the DALI Server for the
+   * but does not actually reach out the the DAFServer for the
    * clusters behind the ESP named by the IP address.
    * @param fileName The HPCC file name
    * @param protocol usually http or https
@@ -38,6 +41,23 @@ public class HpccFile {
    */
   public HpccFile(String aFileName, String aProtocol, String aHost,
       String aPort, String aUser, String aPword) {
+    this(aFileName, aProtocol, aHost, aPort, aUser, aPword,
+         new RemapInfo(0));
+  }
+  /**
+   * Lazy constructor for the HpccFile.  Captures the information
+   * but does not actually reach out the the DAFServer for the
+   * clusters behind the ESP named by the IP address.
+   * @param fileName The HPCC file name
+   * @param protocol usually http or https
+   * @param host the ESP address
+   * @param port the ESP port
+   * @param user a valid account that has access to the file
+   * @param pword a valid pass word for the account
+   * @param remap_info address and port re-mapping info for THOR cluster
+   */
+  public HpccFile(String aFileName, String aProtocol, String aHost,
+      String aPort, String aUser, String aPword, RemapInfo remap_info) {
     this.ready = false;
     this.badFile = false;
     this.badDef = false;
@@ -49,6 +69,7 @@ public class HpccFile {
     this.pword = aPword;
     this.parts = new FilePart[0];   // empty
     this.recordDefinition = new RecordDef();  // missing, the default
+    this.ri = remap_info;
   }
   /**
    * The partitions for the file residing on an HPCC cluster
@@ -84,11 +105,13 @@ public class HpccFile {
       conn.setPassword(pword);
       HPCCWsDFUClient hpcc = HPCCWsDFUClient.get(conn);
       try {
-        DFUFileDetailInfo fd = hpcc.getFileDetails(this.fileName, "", true);
+        DFUFileDetailInfo fd = hpcc.getFileDetails(this.fileName, "", true, false);
         DFUFilePartsOnClusterInfo[] fp = fd.getDFUFilePartsOnClusters();
         DFUFilePartInfo[] dfu_parts = fp[0].getDFUFileParts();
-        this.parts = FilePart.makeFileParts(fd.getNumParts(),
-            fd.getDir(), fd.getFilename(), fd.getPathMask(), dfu_parts);
+        ClusterRemapper cr = ClusterRemapper.makeMapper(this.ri, dfu_parts,
+            fd.getNumParts());
+        this.parts = FilePart.makeFileParts(fd.getNumParts(), fd.getDir(),
+            fd.getFilename(), fd.getPathMask(), dfu_parts, cr);
         String record_def_json = fd.getJsonInfo();
         if (record_def_json==null) {
           throw new UnusableDataDefinitionException("Definiiton returned was null");

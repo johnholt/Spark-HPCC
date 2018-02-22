@@ -15,7 +15,7 @@ public class HpccRemoteFileReader {
   /**
    * A remote file reader that reads the part identified by the
    * FilePart object using the record definition provided.
-   * @param def the defintion of the data
+   * @param def the definition of the data
    * @param fp the part of the file, name and location
    */
   public HpccRemoteFileReader(FilePart fp, RecordDef rd) {
@@ -23,6 +23,10 @@ public class HpccRemoteFileReader {
     this.fp = fp;
     this.brr = new BinaryRecordReader(fp, def);
   }
+  /**
+   * Is there more data
+   * @return true if there is a next record
+   */
   public boolean hasNext() {
     boolean rslt;
     try {
@@ -34,6 +38,10 @@ public class HpccRemoteFileReader {
     }
     return rslt;
   }
+  /**
+   * Return next record
+   * @return the record
+   */
   public Record next() {
     Record rslt = null;
     try {
