@@ -1,12 +1,19 @@
-/**
- *
- */
 package org.hpccsystems.spark;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
+import org.apache.spark.rdd.RDD;
+import org.apache.spark.mllib.regression.LabeledPoint;
+import org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS;
+import org.apache.spark.mllib.classification.LogisticRegressionModel;
+import org.apache.spark.mllib.evaluation.MulticlassMetrics;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
 import scala.collection.Seq;
 import scala.collection.JavaConverters;
+import scala.Tuple2;
+import scala.reflect.ClassTag;
+import scala.reflect.ClassTag$;
 import org.hpccsystems.spark.HpccFile;
 
 import java.util.Arrays;
@@ -14,7 +21,7 @@ import java.util.Arrays;
 
 
 /**
- * Test from to test RDD by reading the data.
+ * Test from to test RDD by reading the data and running Logistic Regression.
  * @author holtjd
  *
  */
@@ -28,7 +35,7 @@ public class RDDTest {
     //
     SparkConf conf = new SparkConf().setAppName("Spark HPCC test");
     conf.setMaster("local[2]");
-    conf.setSparkHome("/Users/holtjd/WorkArea/spark-2.2.0-bin-hadoop2.7");
+    conf.setSparkHome("/Users/holtjd/WorkArea/spark-2.2.1-bin-hadoop2.7");
     String japi_jar = "/Users/holtjd/WorkArea/wsclient-2.0.0-SNAPSHOT-jar-with-dependencies.jar";
     String this_jar = "/Users/holtjd/Repositories/Spark-HPCC/target/spark-hpcc-t0.jar";
     java.util.List<String> jar_list = Arrays.asList(this_jar, japi_jar);
@@ -52,22 +59,30 @@ public class RDDTest {
       Record rec = rec_iter.next();
       System.out.println(rec.toString());
     }
-    System.out.println("Completed output of Record data, now trying LabeledPoint");
+    System.out.println("Completed output of Record data");
+    System.out.println("Convert to labeled point and run logistic regression");
     String[] names = {"petal_length","petal_width", "sepal_length", "sepal_width"};
-    org.apache.spark.rdd.RDD<org.apache.spark.mllib.regression.LabeledPoint>
-        lpRDD = myRDD.makeMLLibLabeledPoint("class", names);
-//    scala.collection.Iterator<org.apache.spark.mllib.regression.LabeledPoint>
-//        lp_iter = lpRDD.toLocalIterator();
-//    while (lp_iter.hasNext()) {
-//      org.apache.spark.mllib.regression.LabeledPoint lp = lp_iter.next();
-//      System.out.println(lp.toString());
-//    }
-    org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS lr
-     = new org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS();
+    RDD<LabeledPoint> lpRDD = myRDD.makeMLLibLabeledPoint("class", names);
+    LogisticRegressionWithLBFGS lr  = new LogisticRegressionWithLBFGS();
     lr.setNumClasses(3);
-    org.apache.spark.mllib.classification.LogisticRegressionModel m
-      = lr.run(lpRDD);
-    System.out.println(m.toString());
+    LogisticRegressionModel iris_model = lr.run(lpRDD);
+    System.out.println(iris_model.toString());
+    System.out.println("Generate confusion matrix");
+    Function<LabeledPoint, Tuple2<Object, Object>> my_f
+      = new Function<LabeledPoint, Tuple2<Object, Object>>() {
+      static private final long serialVersionUID = 1L;
+      public Tuple2<Object, Object> call(LabeledPoint lp) {
+        Double label = new Double(lp.label());
+        Double predict = new Double(iris_model.predict(lp.features()));
+        return new Tuple2<Object, Object>(predict, label);
+      }
+    };
+    ClassTag<LabeledPoint> typ = ClassTag$.MODULE$.apply(LabeledPoint.class);
+    JavaRDD<LabeledPoint> lpJavaRDD = new JavaRDD<LabeledPoint>(lpRDD, typ);
+    RDD<Tuple2<Object, Object>> predAndLabelRDD = lpJavaRDD.map(my_f).rdd();
+    MulticlassMetrics metrics = new MulticlassMetrics(predAndLabelRDD);
+    System.out.println("Confusion matrix:");
+    System.out.println(metrics.confusionMatrix());
     System.out.println("End of run");
   }
 }
