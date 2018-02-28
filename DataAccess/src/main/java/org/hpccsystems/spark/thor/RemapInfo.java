@@ -1,5 +1,7 @@
 package org.hpccsystems.spark.thor;
 
+import java.io.Serializable;
+
 /**
  * @author holtjd
  * Information to re-map address information for Clusters that can
@@ -7,7 +9,8 @@ package org.hpccsystems.spark.thor;
  * Addresses are re-mapped to a range of IP addresses or to an
  * IP address and a range of ports.
  */
-public class RemapInfo {
+public class RemapInfo implements Serializable {
+  static private final long serialVersionUID = 1L;
   private final int nodes;
   private final String base_ip;
   private final int base_portClear;
