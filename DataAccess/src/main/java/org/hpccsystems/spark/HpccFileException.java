@@ -3,11 +3,14 @@
  */
 package org.hpccsystems.spark;
 
+import java.io.Serializable;
+
 /**
  * @author holtjd
  * Exception class for problems accessing files on an HPCC Cluster.
  */
-public class HpccFileException extends Exception {
+public class HpccFileException extends Exception implements Serializable {
+  static private final long serialVersionUID = 1L;
   /**
    * Empty constructor.
    */

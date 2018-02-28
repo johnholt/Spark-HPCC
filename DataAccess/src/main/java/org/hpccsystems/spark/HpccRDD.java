@@ -10,7 +10,6 @@ import org.apache.spark.rdd.RDD;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.mllib.linalg.Vector;
 import org.hpccsystems.spark.HpccRemoteFileReader;
-import org.hpccsystems.spark.HpccFileException;
 import org.apache.spark.InterruptibleIterator;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;

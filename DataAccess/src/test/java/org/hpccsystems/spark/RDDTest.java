@@ -15,7 +15,7 @@ import scala.Tuple2;
 import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 import org.hpccsystems.spark.HpccFile;
-
+import org.hpccsystems.spark.thor.RemapInfo;
 import java.util.Arrays;
 //
 
@@ -27,9 +27,9 @@ import java.util.Arrays;
  */
 public class RDDTest {
   public static void main(String[] args) throws Exception {
-    String hpcc_ip = "10.239.40.2";
+    String hpcc_ip = "10.240.37.76";
     String hpcc_port = "8010";
-    String hpcc_file = "~thor::testdata::iris";
+    String hpcc_file = "~thor::test::iris";
     //String hpcc_file = "~THOR::JDH::JAPI_FIXED";
     String protocol = "http";
     //
@@ -45,7 +45,8 @@ public class RDDTest {
     SparkContext sc = new SparkContext(conf);
     System.out.println("Spark context available");
     //
-    HpccFile hpcc = new HpccFile(hpcc_file, protocol, hpcc_ip, hpcc_port, "", "");
+    RemapInfo ri = new RemapInfo(20, "10.240.37.108");
+    HpccFile hpcc = new HpccFile(hpcc_file, protocol, hpcc_ip, hpcc_port, "", "", ri);
     System.out.println("Getting file parts");
     FilePart[] parts = hpcc.getFileParts();
     System.out.println("Getting record definition");

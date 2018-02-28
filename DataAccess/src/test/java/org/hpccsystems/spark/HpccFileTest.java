@@ -16,10 +16,10 @@ public class HpccFileTest {
     //String MyVM = "127.0.0.1";
     //String ML_Dev = "10.239.40.2";
     String ML_Dev = "10.240.37.76";
-    String testName = "~THOR::JDH::JAPI_TEST1a";
+    //String testName = "~THOR::JDH::JAPI_TEST1a";
     //String testName = "~THOR::JDH::JAPI_TEST2";
     //String testName = "~THOR::JDH::JAPI_FIXED";
-    //String testName = "~THOR::TESTDATA::IRIS";
+    String testName = "~THOR::TEST::IRIS";
     //String testName = "~THOR::JDH::JAPI_FIXED_MULTI";
     RemapInfo ri = new RemapInfo(20, "10.240.37.108");
     HpccFile hpcc = new HpccFile(testName, "http", ML_Dev, "8010", "", "", ri);
