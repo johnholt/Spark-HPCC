@@ -14,6 +14,12 @@ import org.hpccsystems.spark.thor.UnusableDataDefinitionException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonToken;
 
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.DataType;
+
 /**
  * HPCC record definition.  Includes HPCC record info strings and derived
  * Field Defs.
@@ -194,5 +200,12 @@ public class RecordDef implements Serializable {
    */
   public String toString() {
     return "RECORD: " + root.toString();
+  }
+  public StructType asSchema() {
+    StructField[] fields = new StructField[this.root.getNumDefs()];
+    for (int i=0; i<this.root.getNumDefs(); i++) {
+      fields[i] = this.root.getDef(i).asSchemaElement();
+    }
+    return DataTypes.createStructType(fields);
   }
 }

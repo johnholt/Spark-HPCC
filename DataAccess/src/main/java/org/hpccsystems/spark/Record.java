@@ -16,6 +16,7 @@ public class Record implements java.io.Serializable {
   private String fileName;
   private int part;
   private long pos;
+  private Content[] fieldContent;
   private java.util.HashMap<String, Content> content;
   /**
    * Record from an array of content items
@@ -28,10 +29,12 @@ public class Record implements java.io.Serializable {
     this.fileName = fileName;
     this.part = part;
     this.pos = pos;
-    this.content = new java.util.HashMap<String, Content>(100);
+    this.content = new java.util.HashMap<String, Content>(fields.length*2);
     for (Content w : fields) {
       this.content.put(w.getName(), w);
     }
+    this.fieldContent = new Content[fields.length];
+    for (int i=0; i<fields.length; i++) this.fieldContent[i] = fields[i];
   }
   /**
    * No argument constructor for serialization support
@@ -39,6 +42,7 @@ public class Record implements java.io.Serializable {
   protected Record() {
     this.fileName = "";
     this.content = new java.util.HashMap<String, Content>(0);
+    this.fieldContent = new Content[0];
   }
   /**
    * Construct a labeled point record from an HPCC record.

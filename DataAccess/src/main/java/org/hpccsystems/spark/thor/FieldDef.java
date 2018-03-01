@@ -1,7 +1,10 @@
 package org.hpccsystems.spark.thor;
 
 import org.hpccsystems.spark.FieldType;
-
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.DataType;
 import com.fasterxml.jackson.core.JsonToken;
 
 import java.io.Serializable;
@@ -118,7 +121,73 @@ public class FieldDef implements Serializable {
    * @return true when fixed length
    */
   public boolean isFixed() { return this.fixedLength; }
-
+  /**
+   * translate a FieldDef into a StructField object of the schema
+   * @return
+   */
+  public StructField asSchemaElement() {
+    Metadata empty = Metadata.empty();
+    StructField rslt;
+    DataType sql_type;
+    StructField[] struct_fields;
+    switch (this.fieldType) {
+      case STRING:
+        rslt = new StructField(this.fieldName, DataTypes.StringType, false, empty);
+        break;
+      case INTEGER:
+        rslt = new StructField(this.fieldName, DataTypes.LongType, false, empty);
+        break;
+      case BINARY:
+        rslt = new StructField(this.fieldName, DataTypes.BinaryType, false, empty);
+        break;
+      case BOOLEAN:
+        rslt = new StructField(this.fieldName, DataTypes.BooleanType, false, empty);
+        break;
+      case REAL:
+        rslt = new StructField(this.fieldName, DataTypes.DoubleType, false, empty);
+        break;
+      case SET_OF_STRING:
+        sql_type = DataTypes.createArrayType(DataTypes.StringType);
+        rslt = new StructField(this.fieldName, sql_type, true, empty);
+        break;
+      case SET_OF_INTEGER:
+        sql_type = DataTypes.createArrayType(DataTypes.LongType);
+        rslt = new StructField(this.fieldName, sql_type, true, empty);
+        break;
+      case SET_OF_BINARY:
+        sql_type = DataTypes.createArrayType(DataTypes.BinaryType);
+        rslt = new StructField(this.fieldName, sql_type, true, empty);
+        break;
+      case SET_OF_BOOLEAN:
+        sql_type = DataTypes.createArrayType(DataTypes.BooleanType);
+        rslt = new StructField(this.fieldName, sql_type, true, empty);
+        break;
+      case SET_OF_REAL:
+        sql_type = DataTypes.createArrayType(DataTypes.DoubleType);
+        rslt = new StructField(this.fieldName, sql_type, true, empty);
+        break;
+      case RECORD:
+        struct_fields = new StructField[this.defs.length];
+        for (int i=0; i<this.defs.length; i++) {
+          struct_fields[i] = this.defs[i].asSchemaElement();
+        }
+        sql_type = DataTypes.createStructType(struct_fields);
+        rslt = new StructField(this.fieldName, sql_type, false, empty);
+        break;
+      case SEQ_OF_RECORD:
+        struct_fields = new StructField[this.defs.length];
+        for (int i=0; i<this.defs.length; i++) {
+          struct_fields[i] = this.defs[i].asSchemaElement();
+        }
+        DataType struct_type = DataTypes.createStructType(struct_fields);
+        sql_type = DataTypes.createArrayType(struct_type);
+        rslt = new StructField(this.fieldName, sql_type, true, empty);
+        break;
+      default:
+        rslt = new StructField(this.fieldName, DataTypes.NullType, true, empty);
+    }
+    return rslt;
+  }
   /**
    * A descriptive string showing the name and type.  When the
    * type is a composite, the composite definitions are included.
@@ -173,6 +242,18 @@ public class FieldDef implements Serializable {
    * @return number of fields.
    */
   public int getNumFields() { return this.fields; }
+  /**
+   * Number of field definitions.  Zero if this is not a record
+   * @return number
+   */
+  public int getNumDefs() { return this.defs.length; }
+  /**
+   * Get the FieldDef at position.  Will throw an array out of bounds
+   * exception.
+   * @param ndx index position
+   * @return the FieldDef object
+   */
+  public FieldDef getDef(int ndx) { return this.defs[ndx]; }
   /**
    * An iterator to walk though the type definitions that compose
    * this type.
