@@ -8,27 +8,42 @@ import org.apache.spark.mllib.evaluation.MulticlassMetrics
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
+import scala.io.StdIn
 
 object Iris_LR {
   def main(args: Array[String]) {
-    val hpcc_protocol = "http"
-    val hpcc_ip = "10.239.40.2"
-    val hpcc_port = "8010"
-    val hpcc_file = "~thor::testdata::iris"
-    val hpcc_jar = "/Users/holtjd/Repositories/Spark-HPCC/target/spark-hpcc-t0.jar"
-    val japi_jar = "/Users/holtjd/WorkArea/wsclient-2.0.0-SNAPSHOT-jar-with-dependencies.jar"
+    val hpcc_jar = StdIn.readLine("Full path of Spark-HPCC Jar: ")
+    val japi_jar = StdIn.readLine("Full path of JAPI Jar: ")
     val jar_list = Array(hpcc_jar, japi_jar)
     // Spark setup
     val conf = new SparkConf().setAppName("Iris_Spark_HPCC")
     conf.setMaster("local[2]")
-    conf.setSparkHome("/Users/holtjd/WorkArea/spark-2.2.0-bin-hadoop2.7")
+    val sparkHome = StdIn.readLine("Full path to Spark home: ")
+    conf.setSparkHome(sparkHome)
     conf.setJars(jar_list)
     val sc = new SparkContext(conf)
+    val hpcc_protocol = StdIn.readLine("protocol: ")
+    val hpcc_ip = StdIn.readLine("ESP IP: ")
+    val hpcc_port = StdIn.readLine("port: ")
+    val hpcc_file = StdIn.readLine("File name: ")
+    val user = StdIn.readLine("user: ")
+    val pword = StdIn.readLine("password: ")
+    val nodes = StdIn.readLine("nodes: ")
+    val base_ip = StdIn.readLine("base ip: ")
     //
-    val ri = new RemapInfo(20, "10.240.37.108")
-    val hpcc = new HpccFile(hpcc_file, hpcc_protocol, hpcc_ip, hpcc_port, "", "", ri)
+    //val ri = new RemapInfo(20, "10.240.37.108")
+    //val hpcc = new HpccFile(hpcc_file, hpcc_protocol, hpcc_ip, hpcc_port, "", "", ri)
+    val hpcc = if (nodes.equals("") || base_ip.equals(""))
+      new HpccFile(hpcc_file, hpcc_protocol, hpcc_ip, hpcc_port, user, pword)
+    else {val ri = new RemapInfo(Integer.parseInt(nodes), base_ip)
+      new HpccFile(hpcc_file, hpcc_protocol, hpcc_ip, hpcc_port, user, pword, ri)
+    }
     val myRDD = hpcc.getRDD(sc)
-    val names = Array("petal_length","petal_width", "sepal_length", "sepal_width")
+    val names = new Array[String](4)
+    names(0) = "petal_length"
+    names(1) = "petal_width"
+    names(2) = "sepal_length"
+    names(3) = "sepal_width"
     val lpRDD = myRDD.makeMLLibLabeledPoint("class", names)
     val lr = new LogisticRegressionWithLBFGS().setNumClasses(3)
     val iris_model = lr.run(lpRDD)
