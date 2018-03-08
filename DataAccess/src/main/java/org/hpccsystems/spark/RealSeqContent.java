@@ -1,7 +1,10 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import scala.collection.JavaConverters;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -93,6 +96,22 @@ public class RealSeqContent extends Content implements Serializable {
         rslt[i] = Double.toString(this.value[i]);
     }
     return rslt;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    DataType test = DataTypes.createArrayType(DataTypes.DoubleType);
+    if (!test.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expect array of double, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    ArrayList<Double> work = new ArrayList<Double>(this.value.length);
+    for (int i=0; i<this.value.length; i++) {
+      work.add(new Double(this.value[i]));
+    }
+    return JavaConverters.asScalaBufferConverter(work).asScala().seq();
   }
 
 }

@@ -2,8 +2,10 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 import javax.xml.bind.DatatypeConverter;
-
 import org.hpccsystems.spark.thor.FieldDef;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.BinaryType;
 
 /**
  * Binary field content.  Either a DATA field or a DATAn fixed length field.
@@ -75,6 +77,19 @@ public class BinaryContent extends Content implements Serializable {
   public String[] asSetOfString() {
     String[] rslt = new String[1];
     rslt[0] = this.asString();
+    return rslt;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!dtyp.sameType(DataTypes.BinaryType)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected BinaryType, given ");
+      sb.append(dtyp.toString());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    byte[] rslt = new byte[this.value.length];
+    for (int i=0; i<this.value.length; i++) rslt[i] = this.value[i];
     return rslt;
   }
 

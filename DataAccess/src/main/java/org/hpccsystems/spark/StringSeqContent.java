@@ -4,7 +4,10 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import scala.collection.JavaConverters;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -70,6 +73,20 @@ public class StringSeqContent extends Content implements Serializable{
     String[] rslt = new String[this.values.length];
     for (int i=0; i<this.values.length; i++) rslt[i] = this.values[i];
     return rslt;
+  }
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    DataType test = DataTypes.createArrayType(DataTypes.StringType);
+    if (!test.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected array of string type, given ");
+      sb.append(dtyp.typeName());
+    }
+    ArrayList<String> work = new ArrayList<String>(this.values.length);
+    for (int i=0; i<this.values.length; i++) {
+      work.add(this.values[i]);
+    }
+    return JavaConverters.asScalaBufferConverter(work).asScala().seq();
   }
 
 }

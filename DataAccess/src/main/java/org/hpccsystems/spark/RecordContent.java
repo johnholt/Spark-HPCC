@@ -1,7 +1,9 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.DataType;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -65,6 +67,10 @@ public class RecordContent extends Content implements Serializable{
   public Content fieldAt(int ndx) {
     return this.items[ndx];
   }
+  /**
+   * An iterator for the Content fields.
+   * @return the iterator
+   */
   public java.util.Iterator<Content> asIterator() {
     Content[] t = this.items;
     return new java.util.Iterator<Content>() {
@@ -76,6 +82,23 @@ public class RecordContent extends Content implements Serializable{
         return cp[pos++];
       }
     };
+  }
+  protected Row asRow(StructType t){
+    Object[] fields = new Object[this.items.length];
+    for (int fld=0; fld<this.items.length; fld++) {
+      if (!this.items[fld].getName().equals(t.apply(fld).name())) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Name mismatch at index ");
+        sb.append(fld);
+        sb.append("; ");
+        sb.append(this.items[fld].getName());
+        sb.append("!=");
+        sb.append(t.apply(fld).name());
+        throw new IllegalArgumentException(sb.toString());
+      }
+      fields[fld] = this.items[fld].asRowObject(t.apply(fld).dataType());
+    }
+    return new HpccRow(fields, t);
   }
   /* (non-Javadoc)
    * @see org.hpccsystems.spark.Content#numFields()
@@ -106,6 +129,16 @@ public class RecordContent extends Content implements Serializable{
     String[] rslt = new String[1];
     rslt[0] = this.asString();
     return rslt;
+  }
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!(dtyp instanceof StructType)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected structure type, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    } // field by field checks done during row build
+    return this.asRow((StructType)dtyp);
   }
 
 }

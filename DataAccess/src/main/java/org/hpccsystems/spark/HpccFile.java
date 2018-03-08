@@ -10,6 +10,9 @@ import org.hpccsystems.ws.client.platform.DFUFilePartInfo;
 import org.hpccsystems.ws.client.utils.Connection;
 import java.io.Serializable;
 import org.apache.spark.SparkContext;
+import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.Dataset;
 
 /**
  * Access to file content on a collection of one or more HPCC
@@ -102,7 +105,24 @@ public class HpccFile implements Serializable {
   public RecordDef getRecordDefinition() throws HpccFileException {
     return recordDefinition;
   }
+  /**
+   * Make a Spark Resilient Distributed Dataset (RDD) that provides access
+   * to THOR based datasets.
+   * @param sc Spark Context
+   * @return An RDD of THOR data.
+   * @throws HpccFileException When there are errors reaching the THOR data
+   */
   public HpccRDD getRDD(SparkContext sc) throws HpccFileException {
     return new HpccRDD(sc, this.parts, this.recordDefinition);
+  }
+  /**
+   * Make a Spark Dataframe (Dataset<Row>) of THOR data available.
+   * @param session the Spark Session object
+   * @return a Dataframe of THOR data
+   * @throws HpccFileException when htere are errors reaching the THOR data.
+   */
+  public Dataset<Row> getDataframe(SparkSession session) throws HpccFileException{
+    HpccDataframeFactory factory = new HpccDataframeFactory(session);
+    return factory.getDataframe(this);
   }
 }

@@ -1,7 +1,7 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import org.apache.spark.sql.types.DataType;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -125,4 +125,23 @@ public abstract class Content implements Serializable {
     }
     return rslt;
   }
+  /**
+   * As an object to be used to construct an HpccRow.  The mapping is:
+   * BINARY -> byte[];
+   * BOOLEAN -> Boolean;
+   * INTEGER -> Long;
+   * REAL -> Double;
+   * RECORD -> HpccRow;
+   * SEQ_OF_ROW -> Seq<HpccRow>
+   * SET_OF_BINARY -> Seq<byte[]>
+   * SET_OF_BOOLEAN -> Seq<Boolean>
+   * SET_OF_INTEGER -> Seq<Long>
+   * SET_OF_REAL -> Seq<Double>
+   * SET_OF_STRING -> Seq<String>
+   * STRING -> String
+   *  where Seq<?> is scala.collection.Seq.
+   * @param dtyp the schema data type.  Checked for compatibility.
+   * @return the object
+   */
+  public abstract Object asRowObject(DataType dtyp);
 }

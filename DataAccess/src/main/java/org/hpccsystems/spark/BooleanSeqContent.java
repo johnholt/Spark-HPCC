@@ -1,8 +1,12 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.hpccsystems.spark.thor.FieldDef;
+
+import scala.collection.JavaConverters;
 
 /**
  * @author holtjd
@@ -91,6 +95,22 @@ public class BooleanSeqContent extends Content implements Serializable {
       rslt[i] = Boolean.toString(this.value[i]);
     }
     return rslt;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    DataType test = DataTypes.createArrayType(DataTypes.BooleanType);
+    if (!test.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected Array of BooleanType, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    ArrayList<Boolean> work = new ArrayList<Boolean>(this.value.length);
+    for (int i=0; i<this.value.length; i++) {
+      work.add(new Boolean(this.value[i]));
+    }
+    return JavaConverters.asScalaBufferConverter(work).asScala().seq();
   }
 
 }

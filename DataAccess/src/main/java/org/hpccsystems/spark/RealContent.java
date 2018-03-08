@@ -1,7 +1,8 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.hpccsystems.spark.thor.FieldDef;
 
 public class RealContent extends Content implements Serializable {
@@ -57,6 +58,16 @@ public class RealContent extends Content implements Serializable {
     String[] rslt = new String[1];
     rslt[0] = Double.toString(this.value);
     return rslt;
+  }
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!DataTypes.DoubleType.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected type Double, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    return new Double(this.value);
   }
 
 }

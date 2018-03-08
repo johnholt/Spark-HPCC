@@ -2,8 +2,11 @@ package org.hpccsystems.spark;
 
 import java.io.Serializable;
 import javax.xml.bind.DatatypeConverter;
-
 import org.hpccsystems.spark.thor.FieldDef;
+import scala.collection.JavaConverters;
+import java.util.ArrayList;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 
 /**
  * @author holtjd
@@ -106,6 +109,27 @@ public class BinarySeqContent extends Content implements Serializable {
       rslt[i] = DatatypeConverter.printHexBinary(this.value[i]);
     }
     return rslt;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    DataType test = DataTypes.createArrayType(DataTypes.BinaryType);
+    if (!test.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected Array of BinaryType, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    int elements = this.value.length;
+    ArrayList<byte[]> work = new ArrayList<byte[]>(elements);
+    for (int i=0; i<elements; i++) {
+      byte[] elem = new byte[this.value[i].length];
+      for (int j=0; j<this.value[i].length; j++) {
+        elem[j] = this.value[i][j];
+      }
+      work.add(elem);
+    }
+    return JavaConverters.asScalaBufferConverter(work).asScala().seq();
   }
 
 }

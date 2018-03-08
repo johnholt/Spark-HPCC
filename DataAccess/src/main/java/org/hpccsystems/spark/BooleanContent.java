@@ -1,7 +1,8 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.DataType;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -72,6 +73,17 @@ private boolean value;
     String[] rslt = new String[1];
     rslt[0] = Boolean.toString(this.value);
     return rslt;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!DataTypes.BooleanType.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected boolean, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    return new Boolean(this.value);
   }
 
 }

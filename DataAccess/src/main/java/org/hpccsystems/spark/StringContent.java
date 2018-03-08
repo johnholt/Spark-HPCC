@@ -1,7 +1,8 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.DataType;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -62,6 +63,16 @@ public class StringContent extends Content implements Serializable {
     String[] rslt = new String[1];
     rslt[0] = this.asString();
     return rslt;
+  }
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!DataTypes.StringType.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected String type, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    return this.value;
   }
 
 }

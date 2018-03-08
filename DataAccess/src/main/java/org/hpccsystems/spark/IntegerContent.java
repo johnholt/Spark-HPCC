@@ -1,10 +1,11 @@
 package org.hpccsystems.spark;
 
-import static org.junit.Assert.assertNotNull;
-
+import java.io.Serializable;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.DataType;
 import org.hpccsystems.spark.thor.FieldDef;
 
-public class IntegerContent extends Content {
+public class IntegerContent extends Content implements Serializable {
   private final static long serialVersionUID = 1L;
   private long value;
   /**
@@ -59,6 +60,16 @@ public class IntegerContent extends Content {
     String[] rslt = new String[1];
     rslt[0] = Long.toString(this.value);
     return rslt;
+  }
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!DataTypes.LongType.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expect double type, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    return new Long(this.value);
   }
 
 }

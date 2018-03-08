@@ -3,6 +3,11 @@ package org.hpccsystems.spark;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib.linalg.Vector;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.DataType;
+import java.util.ArrayList;
 
 /**
  * A data record from the HPCC system.  A collection of fields, accessed by
@@ -61,6 +66,30 @@ public class Record implements java.io.Serializable {
     double label = cv.getRealValue();
     Vector features = this.asMlLibVector(dimNames);
     LabeledPoint rslt = new LabeledPoint(label, features);
+    return rslt;
+  }
+  /**
+   * Create a Spark Row object for use in data frames.  An ArrayList
+   * is used for sequences and sets.  A RecordContent item is a Row.
+   * @param fd the field definition.  Must match the content.
+   * @return the fields in order as language objects
+   */
+  public Row asRow(RecordDef rd) {
+    Object[] fields = new Object[this.fieldContent.length];
+    StructType schema = rd.asSchema();
+    for (int i=0; i<this.fieldContent.length; i++) {
+      StructField sfld = schema.apply(i);
+      if (!sfld.name().equals(this.fieldContent[i].getName())) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Expected field name of ");
+        sb.append(this.fieldContent[i].getName());
+        sb.append(", given ");
+        sb.append(sfld.name());
+        throw new IllegalArgumentException(sb.toString());
+      }
+      fields[i] = this.fieldContent[i].asRowObject(sfld.dataType());
+    }
+    HpccRow rslt = new HpccRow(fields, schema);
     return rslt;
   }
   /**

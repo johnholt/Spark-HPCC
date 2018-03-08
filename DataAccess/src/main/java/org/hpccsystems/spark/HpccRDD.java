@@ -47,13 +47,21 @@ public class HpccRDD extends RDD<Record> implements Serializable {
     this.def = def;
   }
   /**
+   * Wrap this RDD as a JavaRDD so the Java API can be used.
+   * @return a JavaRDD wrapper of the HpccRDD.
+   */
+  public JavaRDD<Record> asJavaRDD() {
+    JavaRDD<Record> jRDD = new JavaRDD<Record>(this, CT_RECORD);
+    return jRDD;
+  }
+  /**
    * Transform to an RDD of labeled points for MLLib supervised learning.
    * @param labelName the field name of the label datg
    * @param dimNames the field names for the dimensions
    * @return
    */
   public RDD<LabeledPoint> makeMLLibLabeledPoint(String labelName, String[] dimNames) {
-    JavaRDD<Record> jRDD = new JavaRDD<Record>(this, CT_RECORD);
+    JavaRDD<Record> jRDD = this.asJavaRDD();
     Function<Record, LabeledPoint> map_f = new Function<Record, LabeledPoint>() {
       static private final long serialVersionUID = 1L;
       public LabeledPoint call(Record r) {
@@ -68,7 +76,7 @@ public class HpccRDD extends RDD<Record> implements Serializable {
    * @return
    */
   public RDD<Vector> makeMLLibVector(String[] dimNames) {
-    JavaRDD<Record> jRDD = new JavaRDD<Record>(this, CT_RECORD);
+    JavaRDD<Record> jRDD = this.asJavaRDD();
     Function<Record, Vector> map_f = new Function<Record, Vector>() {
       static private final long serialVersionUID = 1L;
       public Vector call(Record r) {

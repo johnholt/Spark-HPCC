@@ -106,6 +106,21 @@ public class FilePart implements Partition, Serializable {
   public int index() {
     return this_part - 1;
   }
+  /*
+   * (non-Javadoc)
+   * @see java.lang.Object
+   */
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append(this.getThisPart());
+    sb.append(" ");
+    sb.append(this.getPrimaryIP());
+    sb.append(":");
+    sb.append(this.getClearPort());
+    sb.append(" ");
+    sb.append(this.getFilename());
+    return sb.toString();
+  }
   /* (non-Javadoc)
    * Spark core 2.10 needs this defined, not needed in 2.11
    */

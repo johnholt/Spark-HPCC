@@ -1,7 +1,12 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import scala.collection.JavaConverters;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.StructType;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -74,6 +79,22 @@ public class RecordSeqContent extends Content implements Serializable {
   public String[] asSetOfString() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    if (!(dtyp instanceof ArrayType)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expected array of records, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    StructType styp = (StructType)((ArrayType)dtyp).elementType();
+    ArrayList<Row> work = new ArrayList<Row>(this.value.length);
+    for (int i=0; i<this.value.length; i++) {
+      work.add(this.value[i].asRow(styp));
+    }
+    return JavaConverters.asScalaBufferConverter(work).asScala().seq();
   }
 
 }

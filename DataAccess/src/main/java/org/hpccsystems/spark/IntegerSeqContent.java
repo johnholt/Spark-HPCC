@@ -1,7 +1,10 @@
 package org.hpccsystems.spark;
 
 import java.io.Serializable;
-
+import java.util.ArrayList;
+import scala.collection.JavaConverters;
+import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.hpccsystems.spark.thor.FieldDef;
 
 /**
@@ -90,6 +93,22 @@ public class IntegerSeqContent extends Content implements Serializable {
     String[] rslt = new String[this.value.length];
     for (int i=0; i<this.value.length; i++) rslt[i] = Long.toString(this.value[i]);
     return rslt;
+  }
+
+  @Override
+  public Object asRowObject(DataType dtyp) {
+    DataType test = DataTypes.createArrayType(DataTypes.LongType);
+    if (!test.sameType(dtyp)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Expect array of long type, given ");
+      sb.append(dtyp.typeName());
+      throw new IllegalArgumentException(sb.toString());
+    }
+    ArrayList<Long> work = new ArrayList<Long>(this.value.length);
+    for (int i=0; i<this.value.length; i++) {
+      work.add(new Long(this.value[i]));
+    }
+    return JavaConverters.asScalaBufferConverter(work).asScala().seq();
   }
 
 }
